@@ -22,6 +22,9 @@ void fibonacchi(){
 		printf( "fibonacchi(%d) = %d\n", i, nextFib );
 		fib[0] = fib[1];
 		fib[1] = nextFib;
+		if(nextFib==34){
+			Lthread_end();
+		}
 		Lthread_yield();
 	}
 }

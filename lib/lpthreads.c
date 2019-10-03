@@ -161,4 +161,9 @@ int Lthread_wait()
 }
 
 
+void Lthread_end(){
+	lpthreadList[currentlpthread].active = 0;
+	return LF_NOERROR;
+}
+
 
