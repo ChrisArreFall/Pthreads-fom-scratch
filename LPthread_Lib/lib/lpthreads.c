@@ -20,6 +20,7 @@
 typedef struct
 {
 	ucontext_t context;     // Almacena el contexto
+	int id;
 	int active;             // 0 si no esta activo, 1 si lo esta
 } lpthread;
 
@@ -126,7 +127,7 @@ int Lthread_create( void (*func)(void) )
 	lpthreadList[numLpthreads].context.uc_stack.ss_sp = malloc( THREAD_STACK );
 	lpthreadList[numLpthreads].context.uc_stack.ss_size = THREAD_STACK;
 	lpthreadList[numLpthreads].context.uc_stack.ss_flags = 0;	
-	
+	lpthreadList[numLpthreads].id = numLpthreads;
 	if ( lpthreadList[numLpthreads].context.uc_stack.ss_sp == 0 )
 	{
 		LF_DEBUG_OUT( "Error: No se le pudo inicializar un stack nuevo.", 0 );
@@ -162,6 +163,17 @@ int Lthread_wait()
 
 void Lthread_end(){
 	lpthreadList[currentlpthread].active = 0;
+	return LF_NOERROR;
+}
+
+void Lthread_join(int id){
+	for(int i =0;i<=numLpthreads;i++){
+		if(lpthreadList[i].id==id){
+			while(lpthreadList[i].active){
+				Lthread_yield();
+			}
+		}
+	}
 	return LF_NOERROR;
 }
 

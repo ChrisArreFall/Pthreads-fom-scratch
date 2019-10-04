@@ -10,9 +10,10 @@ int Lthread_create( void (*func)(void) );
 void Lthread_start( void (*func)(void) );
 void Lthread_end();
 void Lthread_yield();
-void Lthread_join();
+void Lthread_join(int id);
 void Lthread_detach();
 void Lthread_wait();
+void Lthread_yieldSp();
 
 void Lmutex_init();
 void Lmutex_destroy();
