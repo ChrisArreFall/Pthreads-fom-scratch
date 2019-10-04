@@ -6,8 +6,8 @@ int main() {
 
     for (int i =0; i < 200; ++i){
         CANTIDAD_PAQS cant=getCantidadPaquetes();
-       // printf("%d paquetes a la %s\n",cant.cantidad, (cant.lado==IZQUIERDA? "IZQUIERDA":"DERECHA"));
-        printf("%d\n",cant.cantidad);
+        printf("%d paquetes a la %s\n",cant.cantidad, (cant.lado==IZQUIERDA? "IZQUIERDA":"DERECHA"));
+       // printf("%d\n",cant.cantidad);
  }
 
     return 0;
