@@ -118,7 +118,6 @@ int Lthread_create( void (*func)(void) )
 	if ( numLpthreads == MAX_THREADS ){
 		return LF_MAXTHREADS;
 	} 
-	
 	//Agrega la nueva funcion al final de la lista de threads
 	getcontext( &lpthreadList[numLpthreads].context );
 
