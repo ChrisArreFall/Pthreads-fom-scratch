@@ -42,6 +42,7 @@ static int numLpthreads = 0;
 static ucontext_t mainContext;
 
 
+
 /*
  * Inicializa todos los threads en inactivo
  */
@@ -176,5 +177,55 @@ void Lthread_join(int id){
 	}
 	return LF_NOERROR;
 }
+
+
+/*
+	Variable para mutex
+*/
+int mutex = 0;
+
+
+/*
+	Inicializacion del mutex
+*/
+void Lmutex_init(){
+	mutex = 0;
+	return ;
+}
+
+/*
+	Inicializacion del mutex
+*/
+void Lmutex_destroy(){
+	mutex = NULL;
+	return ;
+}
+
+
+/*
+	Inicializacion del mutex
+*/
+void Lmutex_unlock(){
+	mutex = 0;
+	return ;
+}
+
+
+/*
+	Inicializacion del mutex
+*/
+void Lmutex_trylock(){
+	mutex = 0;
+	if(mutex == 0){
+		mutex = 1;
+	}
+	else{
+		while(mutex == 1){
+			usleep(100);
+		}
+	}
+	return ;
+}
+
 
 

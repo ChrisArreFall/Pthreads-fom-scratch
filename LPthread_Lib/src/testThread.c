@@ -151,6 +151,7 @@ void fibonacchi(){
 	//sleep( 2 );
 	printf( "fibonacchi(0) = 0\nfibonnachi(1) = 1\n" );
 	for( i = 2; i < 15; ++ i ){
+		Lmutex_trylock();
 		int nextFib = fib[0] + fib[1];
 		printf( "fibonacchi(%d) = %d\n", i, nextFib );
 		fib[0] = fib[1];
@@ -158,6 +159,7 @@ void fibonacchi(){
 		if(nextFib==34){
 			Lthread_end();
 		}
+		Lmutex_unlock();
 		Lthread_yield();
 	}
 }
@@ -174,12 +176,13 @@ void squares(){
 
 int main(){
 	initLpthreads();
+	Lmutex_init();
 
 	srand(time(0)); 
 	
 	Lthread_create( &thread1 );
 	Lthread_create( &fibonacchi );
-	Lthread_create( &squares );
+	Lthread_create( &fibonacchi );
 
 	Lthread_wait();
 	
