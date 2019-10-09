@@ -3,6 +3,10 @@
 #include <stdlib.h> 
 #include <time.h> 
 #include <unistd.h>
+#include <malloc.h>
+
+#include "packageList.h"
+#include "scheduler.h"
 /*	Para la prueba de los threads, se ha creado una simulacion de una Banda de paquetes
  Esta banda tiene las siguientes caracteristicas:
  -Los calendarizadores deben ser indicados en el momento de que los hilos son creados.
@@ -26,32 +30,10 @@
 		✓ Porcentaje de paquetes urgentes
 
  */
-
-//Paquete, el mismo puede ser de tres tipos distintos, puede tener una asa
-typedef struct
-{
-	int id;
-	int tipo;				//0 normal, 1 urgente, 2 radioactivo
-	int masa;				//Se definio que es un numero entre 1 y 10 kg
-	int lado;  				//0 derecha, 1 izquierda
-	int estado;				//0 si aun no ha pasado al lado opuesto, 1 si ya el paquete esta listo
-} paquete;
+int activoB1 = 1, activoB2 = 1, activoB3 = 1;
 
 
-//Segmento de una banda, el largo de la banda nos dira cuantos segmentos deberia tener la misma
-typedef struct
-{
-	paquete paquete;		//paquete que se encuentra en el segmento
-	int estado;				//nos dice si hay algo en el segmento, esto seria para desplegar en la gui
-} segmento;
-
-//Lista enlazada para el manejo de paquetes
-struct Node { 
-    paquete paquete; 		//El paquete 
-    struct Node* next; 		//El siguiente paquete en la lista
-}; 
-
-void bandaTransoportadora(int numBanda){
+void bandaTransoportadora(int numBanda,int selectedScheduler){
 	//Primero parseo el archivo de configuracion 
 	int metodoFlujo;
 	int fuerzaBanda;
@@ -64,7 +46,14 @@ void bandaTransoportadora(int numBanda){
 	
 	//Si es la banda 1
 	if(numBanda==1){
-		//parsear paquete e igualar a las variables anteriores
+		metodoFlujo = 1;
+		fuerzaBanda = 1;
+		largoBanda = 10;
+		distMediaGenPaq = 5;
+		tiempoLetrero = 5;
+		w = 3;
+		porcPaqRad = 20;
+		porcPaqUrg = 80;
 	}
 	//Si es la banda 2
 	else if(numBanda==2){
@@ -74,21 +63,22 @@ void bandaTransoportadora(int numBanda){
 	else{
 		//parsear paquete e igualar a las variables anteriores
 	}
-	//Variable temporal que se tiene que cambiar por un while(true)
-	int temp = 30;
 	int tiempoEntreCreacionPaquetes=1;
 
-	//Banda que se abstrae como una lista
-	segmento banda[largoBanda];
+	//Banda que se abstrae como una lista de segmentos
+	struct segmento banda[largoBanda];
 	//Que tienen un estado asociado el cual nos dice si alguien la esta ocupando
-	int estadoBanda = 0;
-
-	struct Node* head = NULL;
-	head = (struct Node*)malloc(sizeof(struct Node));
-
+	int estadoBandat = 0;
+	//Numero de paquetes en total
 	int numeroPaquetesTotal = 0;
-	while(temp > 0){
-		--temp;
+	//Flag que nos dice si se pauso la banda por medio de hardware o software
+	int activoTemp = 1;
+	//Lista enlazada de paquetes en el lado derecho que van al lado izquierdo
+	struct node* derecho = NULL;
+	//Lista enlazada de paquetes en el lado izquierdo que van al lado derecho
+	struct node* izquierdo = NULL;
+	int id = 0;
+	while(activoTemp){
 		//Primero bajo el contador del tiempo entre creacion de paquetes
 		--tiempoEntreCreacionPaquetes;
 		//Si ya se acabo el periodo, se tienen que crear mas paquetes
@@ -97,42 +87,65 @@ void bandaTransoportadora(int numBanda){
 			tiempoEntreCreacionPaquetes = 5;
 			//Creo paquetes
 			int numPaquetes; 
-			struct Node* temp = head;
-			while(temp->next!=NULL){
-				temp = temp->next;
-			}
 			for(numPaquetes = abs(rand()) % 8;numPaquetes>0;--numPaquetes){
-				//Creo nodo temporal
-				struct Node* paqueteN = NULL;
-				paqueteN = (struct Node*)malloc(sizeof(struct Node));
 				//Creo paquete 
 				paquete paqueteTemp = { .id = numeroPaquetesTotal, .tipo = (abs(rand()) % 3), .masa = (abs(rand()) % 10) + 1, .lado = (abs(rand()) % 2), .estado = 0};
-				//Agrego paquete al nodo
-				paqueteN->paquete = paqueteTemp;
-				//Lo agrego a la lista enlazada
-				temp->next = paqueteN;
-				//Me posiciono en el nuevo nodo
-				temp = temp->next;
+				if(paqueteTemp.lado = 0){
+					paqueteTemp.pos = largoBanda-1;
+					//Agrego paquete a la lista
+					insertFirst(id, paqueteTemp, derecho);
+				}
+				else{
+					paqueteTemp.pos = 0;
+					//Agrego paquete a la lista
+					insertFirst(id, paqueteTemp, izquierdo);
+				}
+				
+				++id;
 				++numeroPaquetesTotal;
 			}
 		}
-
-		//Pregunta: El manejo de threads de los paquetes como seria? Si cada paquete es un thread eso significa que ellos tomarian turnos entre todos, pero los paquetes son por banda por lo que
-		//se tendria que manejar los threads por conjunto(banda), sin embargo es implicaria que los threads de las bandas nunca se haria yeild a la otra banda porque solo se pasa entre los threads
-		//de la banda.	
-
-		//Idea: En vez de threads usar un struct, en donde se simula el calendarizado y nos permite solo tener 3 threads principales que se ejecutan con el yield normal.
-
-		 
-
+		//Si ya agrego los paquetes o todavia no ha llegado el contador a 0
+		//Llamamos al controlador de flujo
+		scheduler(derecho, izquierdo,banda,selectedScheduler, metodoFlujo, w);
 		int cantPaq;
-		int velocidad;  //
-
-
+		int velocidad;  
+		//Revisamos si ha habido un cambio en el estado de la banda por medi ode hardware o software
+		activoTemp = estadoBanda(numBanda);
 		Lthread_yield();
 		sleep(1);
 	}
 	return;
+}
+
+int calculateSpeed(int masa,int fuerza){
+	int a = fuerza / masa;
+	//asumiendo v = 1000
+	//v = a * t
+	//t = v / a
+	return 1000 / a;
+}
+int estadoBanda(int numBanda){
+	int activoTemp = 1;
+	//Si es la banda 1
+	if(numBanda==1){
+		Lmutex_trylock();
+		activoTemp = activoB1;
+		Lmutex_unlock();
+	}
+	//Si es la banda 2
+	else if(numBanda==2){
+		Lmutex_trylock();
+		activoTemp = activoB2;
+		Lmutex_unlock();
+	}
+	//Si no es la banda 3
+	else{
+		Lmutex_trylock();
+		activoTemp = activoB3;
+		Lmutex_unlock();
+	}
+	return activoTemp;
 }
 
 void thread1(){
@@ -180,9 +193,9 @@ int main(){
 
 	srand(time(0)); 
 	
-	Lthread_create( &thread1 );
-	Lthread_create( &fibonacchi );
-	Lthread_create( &fibonacchi );
+	Lthread_create( &thread1 , 0);
+	Lthread_create( &fibonacchi , 0);
+	Lthread_create( &fibonacchi , 0);
 
 	Lthread_wait();
 	

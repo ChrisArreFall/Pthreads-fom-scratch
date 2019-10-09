@@ -1,6 +1,8 @@
 #include <malloc.h>
 #include <ucontext.h>
 
+#include "scheduler.h"
+
 #define MAX_THREADS 10
 #define THREAD_STACK 1024*1024
 
@@ -22,6 +24,7 @@ typedef struct
 	ucontext_t context;     // Almacena el contexto
 	int id;
 	int active;             // 0 si no esta activo, 1 si lo esta
+	int scheduler;			// Round Robin = 0,Prioridad = 1, SF = 3, GF = 4, RT = 5  
 } lpthread;
 
 
@@ -115,7 +118,7 @@ static void Lthread_start( void (*func)(void) )
 	Lthread_yield();
 }
 
-int Lthread_create( void (*func)(void) )
+int Lthread_create( void (*func)(void), int scheduler)
 {
 	if ( numLpthreads == MAX_THREADS ){
 		return LF_MAXTHREADS;
@@ -129,6 +132,7 @@ int Lthread_create( void (*func)(void) )
 	lpthreadList[numLpthreads].context.uc_stack.ss_size = THREAD_STACK;
 	lpthreadList[numLpthreads].context.uc_stack.ss_flags = 0;	
 	lpthreadList[numLpthreads].id = numLpthreads;
+	lpthreadList[numLpthreads].scheduler = scheduler;
 	if ( lpthreadList[numLpthreads].context.uc_stack.ss_sp == 0 )
 	{
 		LF_DEBUG_OUT( "Error: No se le pudo inicializar un stack nuevo.", 0 );
@@ -147,12 +151,12 @@ int Lthread_wait()
 {
 	int threadsRemaining = 0;
 	
-	// If we are in a fiber, wait for all the *other* fibers to quit
+	//Si estamos en un thread, esperamos a que todos los otros threads terminen
 	if ( inLpthread ) threadsRemaining = 1;
 	
 	LF_DEBUG_OUT( "Esperando a que %d threads terminen...", threadsRemaining );
 	
-	// Execute the fibers until they quit
+	// Ejecuta todos los threads hasta que terminen.
 	while ( numLpthreads > threadsRemaining )
 	{
 		Lthread_yield();
@@ -177,6 +181,10 @@ void Lthread_join(int id){
 	}
 	return LF_NOERROR;
 }
+
+
+
+
 
 
 /*
@@ -222,6 +230,7 @@ void Lmutex_trylock(){
 	else{
 		while(mutex == 1){
 			usleep(100);
+			Lmutex_trylock();
 		}
 	}
 	return ;
