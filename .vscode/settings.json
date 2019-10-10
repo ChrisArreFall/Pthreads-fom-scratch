@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "unordered_map": "c"
+        "unordered_map": "c",
+        "packagelist.h": "c",
+        "scheduler.h": "c"
     }
 }

@@ -1,9 +1,22 @@
 
 #include <malloc.h>
-#include "packageList.h"
 
+typedef struct paquete {
+	int id;
+	int tipo;				//0 normal, 1 urgente, 2 radioactivo
+	int masa;				//Se definio que es un numero entre 1 y 10 kg
+	int lado;  				//0 derecha, 1 izquierda
+	int estado;				//0 si aun no ha pasado al lado opuesto, 1 si ya el paquete esta listo
+    int pos;
+} paquete;
 
-
+typedef struct node {
+   paquete data;
+   struct node *next;
+} node;
+paquete getPaqueteNode(struct node *temp){
+   return temp->data;
+}
 //display the list
 void printList(struct node *head) {
    struct node *ptr = head;
@@ -11,7 +24,7 @@ void printList(struct node *head) {
 	
    //start from the beginning
    while(ptr != NULL) {
-      printf("(%d,%d) ",ptr->data.id,ptr->data);
+      printf("(%d,%d) ",ptr->data.id,ptr->data.tipo);
       ptr = ptr->next;
    }
 	
@@ -47,7 +60,7 @@ struct node* deleteFirst(struct node *head) {
 }
 
 //is list empty
-bool isEmpty(struct node *head) {
+int isEmpty(struct node *head) {
    return head == NULL;
 }
 

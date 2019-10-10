@@ -1,7 +1,9 @@
+#ifndef LL_C
+#define LL_C
 #include <malloc.h>
 #include <ucontext.h>
 
-#include "scheduler.h"
+#include "../include/scheduler.h"
 
 #define MAX_THREADS 10
 #define THREAD_STACK 1024*1024
@@ -166,12 +168,12 @@ int Lthread_wait()
 }
 
 
-void Lthread_end(){
+int Lthread_end(){
 	lpthreadList[currentlpthread].active = 0;
 	return LF_NOERROR;
 }
 
-void Lthread_join(int id){
+int Lthread_join(int id){
 	for(int i =0;i<=numLpthreads;i++){
 		if(lpthreadList[i].id==id){
 			while(lpthreadList[i].active){
@@ -205,7 +207,7 @@ void Lmutex_init(){
 	Inicializacion del mutex
 */
 void Lmutex_destroy(){
-	mutex = NULL;
+	//mutex = NULL;
 	return ;
 }
 
@@ -237,4 +239,4 @@ void Lmutex_trylock(){
 }
 
 
-
+#endif

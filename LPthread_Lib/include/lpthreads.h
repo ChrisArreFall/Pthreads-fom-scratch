@@ -8,9 +8,9 @@
 void initLpthreads();
 int Lthread_create(void (*func)(void), int scheduler);
 void Lthread_start(void (*func)(void));
-void Lthread_end();
+int Lthread_end();
 void Lthread_yield();
-void Lthread_join(int id);
+int Lthread_join(int id);
 void Lthread_detach();
 void Lthread_wait();
 void Lthread_yieldSp();

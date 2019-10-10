@@ -1,12 +1,11 @@
-#include "../include/lpthreads.h"
 #include <stdio.h>
 #include <stdlib.h> 
 #include <time.h> 
 #include <unistd.h>
 #include <malloc.h>
 
-#include "packageList.h"
-#include "scheduler.h"
+#include "../lib/scheduler.c"
+#include "../include/scheduler.h"
 /*	Para la prueba de los threads, se ha creado una simulacion de una Banda de paquetes
  Esta banda tiene las siguientes caracteristicas:
  -Los calendarizadores deben ser indicados en el momento de que los hilos son creados.
@@ -32,6 +31,28 @@
  */
 int activoB1 = 1, activoB2 = 1, activoB3 = 1;
 
+int estadoBanda(int numBanda){
+	int activoTemp = 1;
+	//Si es la banda 1
+	if(numBanda==1){
+		Lmutex_trylock();
+		activoTemp = activoB1;
+		Lmutex_unlock();
+	}
+	//Si es la banda 2
+	else if(numBanda==2){
+		Lmutex_trylock();
+		activoTemp = activoB2;
+		Lmutex_unlock();
+	}
+	//Si no es la banda 3
+	else{
+		Lmutex_trylock();
+		activoTemp = activoB3;
+		Lmutex_unlock();
+	}
+	return activoTemp;
+}
 
 void bandaTransoportadora(int numBanda,int selectedScheduler){
 	//Primero parseo el archivo de configuracion 
@@ -107,9 +128,7 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 		}
 		//Si ya agrego los paquetes o todavia no ha llegado el contador a 0
 		//Llamamos al controlador de flujo
-		scheduler(derecho, izquierdo,banda,selectedScheduler, metodoFlujo, w);
-		int cantPaq;
-		int velocidad;  
+		scheduler(derecho, izquierdo,banda,largoBanda,selectedScheduler, metodoFlujo, w);
 		//Revisamos si ha habido un cambio en el estado de la banda por medi ode hardware o software
 		activoTemp = estadoBanda(numBanda);
 		Lthread_yield();
@@ -125,28 +144,7 @@ int calculateSpeed(int masa,int fuerza){
 	//t = v / a
 	return 1000 / a;
 }
-int estadoBanda(int numBanda){
-	int activoTemp = 1;
-	//Si es la banda 1
-	if(numBanda==1){
-		Lmutex_trylock();
-		activoTemp = activoB1;
-		Lmutex_unlock();
-	}
-	//Si es la banda 2
-	else if(numBanda==2){
-		Lmutex_trylock();
-		activoTemp = activoB2;
-		Lmutex_unlock();
-	}
-	//Si no es la banda 3
-	else{
-		Lmutex_trylock();
-		activoTemp = activoB3;
-		Lmutex_unlock();
-	}
-	return activoTemp;
-}
+
 
 void thread1(){
 	int i;
@@ -173,6 +171,7 @@ void fibonacchi(){
 			Lthread_end();
 		}
 		Lmutex_unlock();
+		sleep( 2 );
 		Lthread_yield();
 	}
 }
