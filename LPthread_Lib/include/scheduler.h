@@ -10,11 +10,7 @@
 typedef struct segmento segmento;
 
 //scheduler(derecho, izquierdo,*banda,selectedScheduler, metodoFlujo, w);
-void scheduler(struct node* derecho,struct node* izquierdo,struct segmento* banda,int tamanoBanda ,int schedulerType,int metodoFlujo, int w);
-paquete roundRobin(struct node* head);
-paquete priority(struct node* head);
-paquete shortFirst(struct node* head);
-paquete firstInFirstOut(struct node* head);
-paquete realTime(struct node* head);
+void scheduler(list_node *derecho,list_node *izquierdo,struct segmento* banda,int tamanoBanda ,int schedulerType,int metodoFlujo, int w);
+
 
 #endif

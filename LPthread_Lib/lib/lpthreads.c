@@ -110,7 +110,7 @@ void Lthread_yield(){
 /*
  * Nos dice el estado del lpthread, especificamente cuando termino para poder librar los recursos.
  */
-static void Lthread_start( void (*func)(void) )
+static void Lthread_start( void (*func)(void))
 {
 	lpthreadList[currentlpthread].active = 1;
 	func();
@@ -119,9 +119,17 @@ static void Lthread_start( void (*func)(void) )
 	// Concede el control, pero como el estado activo esta en 0, entonces devuelve el control al thread principal
 	Lthread_yield();
 }
-
-int Lthread_create( void (*func)(void), int scheduler)
+static void Lthread_start_A( void (*func)(int,int) , int arg1, int arg2)
 {
+	lpthreadList[currentlpthread].active = 1;
+	func(arg1,arg2);
+	lpthreadList[currentlpthread].active = 0;
+	
+	// Concede el control, pero como el estado activo esta en 0, entonces devuelve el control al thread principal
+	Lthread_yield();
+}
+
+int Lthread_create( void (*func)(int,int),int argc,int arg1, int arg2){
 	if ( numLpthreads == MAX_THREADS ){
 		return LF_MAXTHREADS;
 	} 
@@ -134,7 +142,6 @@ int Lthread_create( void (*func)(void), int scheduler)
 	lpthreadList[numLpthreads].context.uc_stack.ss_size = THREAD_STACK;
 	lpthreadList[numLpthreads].context.uc_stack.ss_flags = 0;	
 	lpthreadList[numLpthreads].id = numLpthreads;
-	lpthreadList[numLpthreads].scheduler = scheduler;
 	if ( lpthreadList[numLpthreads].context.uc_stack.ss_sp == 0 )
 	{
 		LF_DEBUG_OUT( "Error: No se le pudo inicializar un stack nuevo.", 0 );
@@ -142,7 +149,13 @@ int Lthread_create( void (*func)(void), int scheduler)
 	}
 	
 	//Crea el contexto, el contexto llama al a funion anterior de start thread
-	makecontext( &lpthreadList[ numLpthreads ].context, (void (*)(void)) &Lthread_start, 1, func );
+	if(argc==2){
+		makecontext( &lpthreadList[ numLpthreads ].context, (void (*)(void)) &Lthread_start_A, 3, func, arg1, arg2);
+	}
+	else{
+		makecontext( &lpthreadList[ numLpthreads ].context, (void (*)(void)) &Lthread_start, 1, func);
+	}
+	
 	++ numLpthreads;
 	
 	return LF_NOERROR;

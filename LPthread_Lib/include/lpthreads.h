@@ -6,8 +6,9 @@
 
 
 void initLpthreads();
-int Lthread_create(void (*func)(void), int scheduler);
+int Lthread_create( void (*func)(void),int argc,int arg1, int arg2);
 void Lthread_start(void (*func)(void));
+void Lthread_start_A( void (*func)(int,int) , int arg1, int arg2);
 int Lthread_end();
 void Lthread_yield();
 int Lthread_join(int id);

@@ -75,6 +75,7 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 		w = 3;
 		porcPaqRad = 20;
 		porcPaqUrg = 80;
+		
 	}
 	//Si es la banda 2
 	else if(numBanda==2){
@@ -85,6 +86,15 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 		//parsear paquete e igualar a las variables anteriores
 	}
 	int tiempoEntreCreacionPaquetes=1;
+	printf("Se ha crado la banda %d con los siguientes parametros:\n",numBanda);
+	printf("metodoFlujo: %d\n",metodoFlujo);
+	printf("fuerzaBanda: %d\n",fuerzaBanda);
+	printf("largoBanda: %d\n",largoBanda);
+	printf("distMediaGenPaq: %d\n",distMediaGenPaq);
+	printf("tiempoLetrero: %d\n",tiempoLetrero);
+	printf("w: %d\n",w);
+	printf("porPaqRad: %d\n",porcPaqRad);
+	printf("porcPaqUrg: %d\n",porcPaqUrg);
 
 	//Banda que se abstrae como una lista de segmentos
 	struct segmento banda[largoBanda];
@@ -95,31 +105,40 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 	//Flag que nos dice si se pauso la banda por medio de hardware o software
 	int activoTemp = 1;
 	//Lista enlazada de paquetes en el lado derecho que van al lado izquierdo
-	struct node* derecho = NULL;
+	list_node* derecho = list_create(NULL);
 	//Lista enlazada de paquetes en el lado izquierdo que van al lado derecho
-	struct node* izquierdo = NULL;
+	list_node* izquierdo = list_create(NULL);
 	int id = 0;
 	while(activoTemp){
 		//Primero bajo el contador del tiempo entre creacion de paquetes
 		--tiempoEntreCreacionPaquetes;
 		//Si ya se acabo el periodo, se tienen que crear mas paquetes
-		if(tiempoEntreCreacionPaquetes==0){
+		if(tiempoEntreCreacionPaquetes==0||numeroPaquetesTotal==0){
+			printf("No hay paquetes o el tiempo se acabo por lo que se crearan mas paquetes\n");
 			//Reseteo la variable en cinco segundos
 			tiempoEntreCreacionPaquetes = 5;
 			//Creo paquetes
 			int numPaquetes; 
-			for(numPaquetes = abs(rand()) % 8;numPaquetes>0;--numPaquetes){
+			for(numPaquetes = (abs(rand()) % 8)+3;numPaquetes>0;--numPaquetes){
 				//Creo paquete 
-				paquete paqueteTemp = { .id = numeroPaquetesTotal, .tipo = (abs(rand()) % 3), .masa = (abs(rand()) % 10) + 1, .lado = (abs(rand()) % 2), .estado = 0};
-				if(paqueteTemp.lado = 0){
+				paquete paqueteTemp = { .id = id, .tipo = (abs(rand()) % 3), .masa = (abs(rand()) % 10) + 1, .lado = (abs(rand()) % 2), .estado = 0};
+				printf("Se ha creado el siguiente paquete con id %d \n",paqueteTemp.id);
+				printf("tipo: %d \n",paqueteTemp.tipo);
+				printf("masa: %d \n",paqueteTemp.masa);
+				printf("lado: %d \n",paqueteTemp.lado);
+				printf("estado: %d \n",paqueteTemp.estado);
+				if(paqueteTemp.lado == 0){
 					paqueteTemp.pos = largoBanda-1;
 					//Agrego paquete a la lista
-					insertFirst(id, paqueteTemp, derecho);
+					derecho = list_insert_end(derecho, &paqueteTemp);
+					printf("ID %d.\n",derecho->data->id);
+					printf("Existen %d paquetes en el lado derecho...\n",list_length(derecho));	
 				}
 				else{
 					paqueteTemp.pos = 0;
 					//Agrego paquete a la lista
-					insertFirst(id, paqueteTemp, izquierdo);
+					izquierdo = list_insert_end(izquierdo, &paqueteTemp);
+					printf("Existen %d paquetes en el lado izquierdo...\n",list_length(izquierdo));
 				}
 				
 				++id;
@@ -148,7 +167,7 @@ int calculateSpeed(int masa,int fuerza){
 
 void thread1(){
 	int i;
-	for ( i = 0; i < 5; ++ i ){
+	for ( i = 0; i < 20; ++ i ){
 		printf( "Hey, I'm thread #1: %d\n", i );
 		Lthread_yield();
 	}
@@ -192,9 +211,11 @@ int main(){
 
 	srand(time(0)); 
 	
-	Lthread_create( &thread1 , 0);
-	Lthread_create( &fibonacchi , 0);
-	Lthread_create( &fibonacchi , 0);
+	Lthread_create( &bandaTransoportadora, 2, 1, 1);
+	Lthread_create( &thread1, 0, 0, 0);
+	//Lthread_create( &fibonacchi, 0, 0, 0);
+	//Lthread_create( &fibonacchi, 0, 0, 0);
+	//Lthread_create( &fibonacchi, 0, 0, 0);
 
 	Lthread_wait();
 	

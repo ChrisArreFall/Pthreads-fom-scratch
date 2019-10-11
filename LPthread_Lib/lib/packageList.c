@@ -1,4 +1,5 @@
-
+#include <stdlib.h>
+#include <string.h>
 #include <malloc.h>
 
 typedef struct paquete {
@@ -10,160 +11,178 @@ typedef struct paquete {
     int pos;
 } paquete;
 
-typedef struct node {
-   paquete data;
-   struct node *next;
-} node;
-paquete getPaqueteNode(struct node *temp){
+typedef struct list_node {
+	paquete *data;
+	struct list_node *next;
+} list_node;
+
+
+paquete* getPaqueteNode(list_node *temp){
    return temp->data;
 }
-//display the list
-void printList(struct node *head) {
-   struct node *ptr = head;
-   printf("\n[ ");
-	
-   //start from the beginning
-   while(ptr != NULL) {
-      printf("(%d,%d) ",ptr->data.id,ptr->data.tipo);
-      ptr = ptr->next;
-   }
-	
-   printf(" ]");
+/* Creates a list (node) and returns it
+ * Arguments: The data the list will contain or NULL to create an empty
+ * list/node
+ */
+list_node* list_create(paquete *data){
+	list_node *l = malloc(sizeof(list_node));
+	if (l != NULL) {
+		l->next = NULL;
+		l->data = data;
+	}
+
+	return l;
 }
 
-//insert link at the first location
-void insertFirst(int id, paquete data, struct node *head) {
-   //create a link
-   struct node *link = (struct node*) malloc(sizeof(struct node));
-	
-   link->data.id = id;
-   link->data = data;
-	
-   //point it to old first node
-   link->next = head;
-	
-   //point first to new first node
-   head = link;
+
+
+/* Creates a list node and inserts it after the specified node
+ * Arguments: A node to insert after and the data the new node will contain
+ */
+list_node* list_insert_after(list_node *node, paquete *data)
+{
+	list_node *new_node = list_create(data);
+	if (new_node) {
+		new_node->next = node->next;
+		node->next = new_node;
+	}
+	return new_node;
 }
 
-//delete first item
-struct node* deleteFirst(struct node *head) {
-
-   //save reference to first link
-   struct node *tempLink = head;
-	
-   //mark next to first link as first 
-   head = head->next;
-	
-   //return the deleted link
-   return tempLink;
+/* Creates a new list node and inserts it in the beginning of the list
+ * Arguments: The list the node will be inserted to and the data the node will
+ * contain
+ */
+list_node* list_insert_beginning(list_node *list, paquete *data)
+{
+	list_node *new_node = list_create(data);
+	if (new_node != NULL) { new_node->next = list; }
+	return new_node;
 }
 
-//is list empty
-int isEmpty(struct node *head) {
-   return head == NULL;
-}
-
-int length(struct node *head) {
-   int length = 0;
-   struct node *current;
-	
-   for(current = head; current != NULL; current = current->next) {
-      length++;
-   }
-	
-   return length;
-}
-
-//find a link with given key
-struct node* find(int id, struct node *head) {
-
-   //start from the first link
-   struct node* current = head;
-
-   //if list is empty
-   if(head == NULL) {
-      return NULL;
-   }
-
-   //navigate through list
-   while(current->data.id != id) {
-	
-      //if it is last node
-      if(current->next == NULL) {
-         return NULL;
-      } else {
-         //go to next link
-         current = current->next;
+/* Creates a new list node and inserts it at the end of the list
+ * Arguments: The list the node will be inserted to and the data the node will
+ * contain
+ */
+list_node* list_insert_end(list_node *list, paquete *data)
+{
+	list_node *new_node = list_create(data);
+	if (new_node != NULL) {
+      if(list->data == NULL){
+         printf("Se creo el primero de la lista...\n");
+         list = new_node;
+         printf("Se agrego al final de la lista con id %d.\n",list->data->id);
+         return list;
       }
-   }      
-	
-   //if data found, return the current Link
-   return current;
+		for(list_node *it = list; it != NULL; it = it->next) {
+			if (it->next == NULL) {
+				it->next = new_node;
+            printf("Se agrego al final de la lista con id %d.\n",list->next->data->id);
+				break;
+			}
+		}
+	}
+	return list;
 }
 
-//delete a link with given key
-struct node* deleteN(int id, struct node *head) {
+/* Removes a node from the list
+ * Arguments: The list and the node that will be removed
+ */
+void list_remove(list_node **list, list_node *node)
+{
+	list_node *tmp = NULL;
+	if (list == NULL || *list == NULL || node == NULL) return;
 
-   //start from the first link
-   struct node* current = head;
-   struct node* previous = NULL;
-	
-   //if list is empty
-   if(head == NULL) {
-      return NULL;
-   }
+	if (*list == node) {
+		*list = (*list)->next;
+		free(node);
+		node = NULL;
+	} else {
+		tmp = *list;
+		while (tmp->next && tmp->next != node) tmp = tmp->next;
+		if (tmp->next) {
+			tmp->next = node->next;
+			free(node);
+			node = NULL;
+		}
+	}
+}
 
-   //navigate through list
-   while(current->data.id != id) {
-
-      //if it is last node
-      if(current->next == NULL) {
-         return NULL;
-      } else {
-         //store reference to current link
-         previous = current;
-         //move to next link
-         current = current->next;
-      }
-   }
-
-   //found a match, update the link
-   if(current == head) {
-      //change first to point to next link
-      head = head->next;
-   } else {
-      //bypass the current link
-      previous->next = current->next;
-   }    
-	
-   return current;
+/* Completely destroys a list
+ * Arguments: A pointer to a pointer to a list
+ */
+void list_destroy(list_node **list)
+{
+	if (list == NULL) return;
+	while (*list != NULL) {
+		list_remove(list, *list);
+	}
 }
 
 
-struct node* getAt(int pos, struct node *head){
-   //start from the first link
-   struct node* current = head;
-   struct node* previous = NULL;
-	
-   //if list is empty
-   if(head == NULL) {
-      return NULL;
-   }
 
-   //navigate through list
-   for(int i = 0; i<= pos; i++){
+/* Find an element in a list by the pointer to the element
+ * Arguments: A pointer to a list and a pointer to the node/element
+ */
+list_node* list_find_node(list_node *list, list_node *node)
+{
+	while (list) {
+		if (list == node) break;
+		list = list->next;
+	}
+	return list;
+}
 
-      //if it is last node
-      if(current->next == NULL) {
-         return NULL;
-      } else {
-         //store reference to current link
-         previous = current;
-         //move to next link
-         current = current->next;
-      }
-   }
-   return current;
+/* Finds an elemt in a list by the data pointer
+ * Arguments: A pointer to a list and a pointer to the data
+ */
+list_node* list_find_by_data(list_node *list, paquete *data)
+{
+	while (list) {
+		if (list->data->id == data->id) break;
+		list = list->next;
+	}
+	return list;
+}
 
+/* Removes an element from a list by comparing the data pointers
+ * Arguments: A pointer to a pointer to a list and the pointer to the data
+ */
+void list_remove_by_data(list_node **list, paquete *data)
+{
+	if (list == NULL || *list == NULL || data == NULL) return;
+	list_remove(list, list_find_by_data(*list, data));
+}
+
+/* Finds an element in the list by using the comparison function
+ * Arguments: A pointer to a list, the comparison function and a pointer to the
+ * data
+ */
+list_node* list_find(list_node *list, int(*func)(list_node*,void*), paquete *data)
+{
+	if (!func) return NULL;
+	while(list) {
+		if (func(list, data)) break;
+		list = list->next;
+	}
+	return list;
+}
+
+
+int list_length(list_node *list){
+   int len = 1;
+   while (list) {
+		if (list->next == NULL) break;
+		list = list->next;
+      ++len;
+	}
+	return len;
+}
+
+list_node* list_getAt(list_node *list, int pos){
+	for(int i = 0; i < pos;++i) {
+		if (list->next == NULL) break;
+		list = list->next;
+	}
+	return list;
 }
