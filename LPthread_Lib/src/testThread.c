@@ -105,9 +105,11 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 	//Flag que nos dice si se pauso la banda por medio de hardware o software
 	int activoTemp = 1;
 	//Lista enlazada de paquetes en el lado derecho que van al lado izquierdo
-	list_node* derecho = list_create(NULL);
+	struct list_node *derecho = NULL;
+	derecho = (struct list_node*)malloc(sizeof(struct list_node));
 	//Lista enlazada de paquetes en el lado izquierdo que van al lado derecho
-	list_node* izquierdo = list_create(NULL);
+	struct list_node *izquierdo = NULL;
+	izquierdo = (struct list_node*)malloc(sizeof(struct list_node));
 	int id = 0;
 	while(activoTemp){
 		//Primero bajo el contador del tiempo entre creacion de paquetes
@@ -121,33 +123,40 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 			int numPaquetes; 
 			for(numPaquetes = (abs(rand()) % 8)+3;numPaquetes>0;--numPaquetes){
 				//Creo paquete 
-				paquete paqueteTemp = { .id = id, .tipo = (abs(rand()) % 3), .masa = (abs(rand()) % 10) + 1, .lado = (abs(rand()) % 2), .estado = 0};
+				struct paquete paqueteTemp = { .id = id, .tipo = (abs(rand()) % 3),.prioridad = (abs(rand()) % 11), .masa = (abs(rand()) % 10) + 1, .lado = (abs(rand()) % 2), .estado = 0};
 				printf("Se ha creado el siguiente paquete con id %d \n",paqueteTemp.id);
 				printf("tipo: %d \n",paqueteTemp.tipo);
 				printf("masa: %d \n",paqueteTemp.masa);
 				printf("lado: %d \n",paqueteTemp.lado);
 				printf("estado: %d \n",paqueteTemp.estado);
 				if(paqueteTemp.lado == 0){
-					paqueteTemp.pos = largoBanda-1;
+					paqueteTemp.pos = largoBanda;
 					//Agrego paquete a la lista
-					derecho = list_insert_end(derecho, &paqueteTemp);
-					printf("ID %d.\n",derecho->data->id);
+					list_insert_end(derecho, paqueteTemp);
 					printf("Existen %d paquetes en el lado derecho...\n",list_length(derecho));	
 				}
 				else{
-					paqueteTemp.pos = 0;
+					paqueteTemp.pos = -1;
 					//Agrego paquete a la lista
-					izquierdo = list_insert_end(izquierdo, &paqueteTemp);
+					list_insert_end(izquierdo, paqueteTemp);
 					printf("Existen %d paquetes en el lado izquierdo...\n",list_length(izquierdo));
 				}
-				
+				printf("Pos %d\n",paqueteTemp.pos);
 				++id;
 				++numeroPaquetesTotal;
 			}
 		}
 		//Si ya agrego los paquetes o todavia no ha llegado el contador a 0
 		//Llamamos al controlador de flujo
+		printf("Derecho:\n");
+		list_All(derecho);
+		printf("Izquierdo:\n");
+		list_All(izquierdo);
 		scheduler(derecho, izquierdo,banda,largoBanda,selectedScheduler, metodoFlujo, w);
+		printf("Derecho:\n");
+		list_All(derecho);
+		printf("Izquierdo:\n");
+		list_All(izquierdo);
 		//Revisamos si ha habido un cambio en el estado de la banda por medi ode hardware o software
 		activoTemp = estadoBanda(numBanda);
 		Lthread_yield();

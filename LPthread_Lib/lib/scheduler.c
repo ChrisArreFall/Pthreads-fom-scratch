@@ -26,23 +26,28 @@ void scheduler(list_node *derecho,list_node *izquierdo,struct segmento *banda,in
                         printf("Se esta usando el scheduler de round robin...\n");
                         int paquetesEnviados = 0;
                         //Si va de derecha a izquierda
+                        int wtemp = w;
                         if(lado == 0){
-                            printf("%d paquetes yendo de derecha a izquierda...\n",w);
+                            printf("%d paquetes yendo de derecha a izquierda...\n",wtemp);
+                            list_All(derecho);
                             int tamano = list_length(derecho);
-                            //si hay menos paquetes que w entonces tenemos que desfasar 
-                            if(tamano<w){
-                                printf("solo existen %d paquetes...\n",tamano);
-                                w = tamano;
+                            //si hay menos paquetes que wtemp entonces tenemos que desfasar 
+                            if(tamano<wtemp){
+                                printf("Solo existen %d paquetes...\n",tamano);
+                                wtemp = tamano;
                             }
-                            //Como esto es equidad y hay que pasar w paquetes, entonces agrego los paquetes a una lista  
-                            //de tamano w.
-                            paquete* listaTemp[w];
-                            printf("pasando %d paquetes a una lista temporal\n",w);
-                            for(int j = 0;j<w;++j){
-                                paquete* paqueteSeleccionado = getPaqueteNode(list_getAt(derecho, j));
-                                printf("pasando paquete %d con id %d\n",j,paqueteSeleccionado->id);
+                            else{
+                                printf("Existen %d paquetes...\n",tamano);
+                            }
+                            //Como esto es equidad y hay que pasar wtemp paquetes, entonces agrego los paquetes a una lista  
+                            //de tamano wtemp.
+                            paquete* listaTemp[wtemp];
+                            printf("metiendo %d paquetes a una lista temporal\n",wtemp);
+                            for(int j = 0;j<wtemp;++j){
+                                paquete* paqueteSeleccionado = &list_getAt(derecho, j)->data;
+                                printf("metiendo paquete %d con id %d\n",j,paqueteSeleccionado->id);
                                 listaTemp[j] = paqueteSeleccionado;
-                                printf("Se ha pasado exitosamente con el id %d\n", listaTemp[j]->id);
+                                printf("Se ha metido exitosamente con el id %d en la posicion %d\n", listaTemp[j]->id,j);
                             }
                             //Finalmente tenemos que empezar con el calendarizador de tipo round robin
                             //Round robin le da un tiempo igual para que cada paquete vaya de un lado a otro
@@ -51,13 +56,13 @@ void scheduler(list_node *derecho,list_node *izquierdo,struct segmento *banda,in
                             //y cuando vuelva a ser su turno seguira de donde esta
 
                             //Va iterando la lista desde el final hasta 0 y despues empieza desde el final
-                            int posInLista = tamanoBanda-1;
-                            printf("Empieza el paso de paquetes!.\n");
+                            int posInLista = 0;
+                            printf("Empieza el while.\n");
                             while(true){
-                                //ahora tenemos una lista de tamano w que contiene los paquetes elegidos, por ser de tipo round robin se eligen los primeros w
-                                //paquetes de la lista enlazada y por ser equidad se la lista es de tamano w
+                                //ahora tenemos una lista de tamano wtemp que contiene los paquetes elegidos, por ser de tipo round robin se eligen los primeros wtemp
+                                //paquetes de la lista enlazada y por ser equidad se la lista es de tamano wtemp
                                 //si la lista esta vacia, significa que ya pasaron los 3
-                                if(paquetesEnviados==w){
+                                if(paquetesEnviados==wtemp){
                                     printf("Ya se enviaron la cantidad de paquetes requeridos!.\n");
                                     break;
                                 }
@@ -68,47 +73,57 @@ void scheduler(list_node *derecho,list_node *izquierdo,struct segmento *banda,in
                                 while(time<1000){
                                     //Lthread_yield();
                                     printf("Empieza el paso de paquetes!.\n");
-                                    //Seteo el segmento actual en cero
-                                        
-                                    banda[listaTemp[posInLista]->pos].estado=0;
                                     //Se mueve el paquete una posicion
+                                    printf("El paquete %d esta en la posicion %d.\n",listaTemp[posInLista]->id,listaTemp[posInLista]->pos);
                                     listaTemp[posInLista]->pos-=1;
+                                    printf("Se mueve el paquete %d a la posicion %d.\n",listaTemp[posInLista]->id,listaTemp[posInLista]->pos);
                                     //Se activa el segmento para mostrar
+                                    printf("Se pone el estado en 1.\n");
                                     banda[listaTemp[posInLista]->pos].estado=1;
                                     //Se le asigna el paquete
                                     banda[listaTemp[posInLista]->pos].paquete=listaTemp[posInLista];
                                     int tiempoCal = 500;
-                                    usleep(tiempoCal);
+                                    usleep(tiempoCal*1000);
                                     time+=tiempoCal;
                                     if(listaTemp[posInLista]->pos==0){
-                                        list_remove_by_data(&derecho,listaTemp[posInLista]);
+                                        list_remove_by_data(&derecho,*listaTemp[posInLista]);
                                         banda[listaTemp[posInLista]->pos].paquete->estado=0;
                                         ++paquetesEnviados;
                                         printf("Paquete enviado!\n");
                                     }
                                 }
                                 ++posInLista;
-                                if(posInLista==w){
+                                if(posInLista==wtemp){
                                     posInLista = 0;
                                 }
                             }
+                            printf("Lista despues de enviados\n");
+                            list_All(derecho);
+                            lado = 1;
                         }
                         //Si va de izquierda a derecha
                         else{
-                            printf("%d paquetes yendo de derecha a izquierda...\n",w);
+                            wtemp = w;
+                            printf("%d paquetes yendo de izquierda a derecha...\n",wtemp);
+                            list_All(izquierdo);
                             int tamano = list_length(izquierdo);
-                            //si hay menos paquetes que w entonces tenemos que desfasar 
-                            if(tamano<w){
-                                printf("solo existen %d paquetes...\n",tamano);
-                                w = tamano;
+                            //si hay menos paquetes que wtemp entonces tenemos que desfasar 
+                            if(tamano<wtemp){
+                                printf("Solo existen %d paquetes...\n",tamano);
+                                wtemp = tamano;
                             }
-                            //Como esto es equidad y hay que pasar w paquetes, entonces agrego los paquetes a una lista  
-                            //de tamano w.
-                            paquete* listaTemp[w];
-                            for(int j = 0;j<w;++j){
-                                paquete* paqueteSeleccionado = getPaqueteNode(list_getAt(izquierdo, j));
-                                printf("pasando paquete %d con id %d\n",j,paqueteSeleccionado->id);
+                            else{
+                                printf("Existen %d paquetes...\n",tamano);
+                            }
+                            //Como esto es equidad y hay que pasar wtemp paquetes, entonces agrego los paquetes a una lista  
+                            //de tamano wtemp.
+                            paquete* listaTemp[wtemp];
+                            printf("metiendo %d paquetes a una lista temporal\n",wtemp);
+                            for(int j = 0;j<wtemp;++j){
+                                paquete* paqueteSeleccionado = &list_getAt(izquierdo, j)->data;
+                                printf("metiendo paquete %d con id %d\n",j,paqueteSeleccionado->id);
                                 listaTemp[j] = paqueteSeleccionado;
+                                printf("Se ha metido exitosamente con el id %d en la posicion %d\n", listaTemp[j]->id,j);
                             }
                             //Finalmente tenemos que empezar con el calendarizador de tipo round robin
                             //Round robin le da un tiempo igual para que cada paquete vaya de un lado a otro
@@ -116,48 +131,65 @@ void scheduler(list_node *derecho,list_node *izquierdo,struct segmento *banda,in
                             //en el caso de que un paquete dure mas de eso en pasar, tendra que almacenar la posicion 
                             //y cuando vuelva a ser su turno seguira de donde esta
 
-                            //Va iterando la lista desde 0 hasta el final y despues empieza desde 0
+                            //Va iterando la lista desde el final hasta 0 y despues empieza desde el final
                             int posInLista = 0;
+                            printf("Empieza el while.\n");
                             while(true){
-                                //ahora tenemos una lista de tamano w que contiene los paquetes elegidos, por ser de tipo round robin se eligen los primeros w
-                                //paquetes de la lista enlazada y por ser equidad se la lista es de tamano w
+                                //ahora tenemos una lista de tamano wtemp que contiene los paquetes elegidos, por ser de tipo round robin se eligen los primeros wtemp
+                                //paquetes de la lista enlazada y por ser equidad se la lista es de tamano wtemp
                                 //si la lista esta vacia, significa que ya pasaron los 3
-                                if(paquetesEnviados==w){
+                                if(paquetesEnviados==wtemp){
+                                    printf("Ya se enviaron la cantidad de paquetes requeridos!.\n");
                                     break;
                                 }
                                 //Ahora procedemos a pasarlos por la banda dandole un tiempo especifico a cada uno por round robin
                                 int time = 0;
-                                //Cambiar esto para que vaya de izquierda a derecha
+                                //Cambiar esto para que vaya de derecha a izquierda
+                                printf("Empieza el tiempo del round robin!.\n");
                                 while(time<1000){
-                                    Lthread_yield();
-                                    if(banda[listaTemp[posInLista]->pos].paquete->estado==1){
-                                        //Seteo el segmento actual en cero
-                                        banda[listaTemp[posInLista]->pos].estado=0;
-                                        //Se mueve el paquete una posicion
-                                        listaTemp[posInLista]->pos+=1;
-                                        //Se activa el segmento para mostrar
-                                        banda[listaTemp[posInLista]->pos].estado=1;
-                                        //Se le asigna el paquete
-                                        banda[listaTemp[posInLista]->pos].paquete=listaTemp[posInLista];
-                                        int tiempoCal = 500;
-                                        usleep(tiempoCal);
-                                        time+=tiempoCal;
-                                        if(listaTemp[posInLista]->pos==0){
-                                            list_remove_by_data(&izquierdo,listaTemp[posInLista]);
-                                            banda[listaTemp[posInLista]->pos].paquete->estado=0;
-                                        }
+                                    //Lthread_yield();
+                                    printf("Empieza el paso de paquetes!.\n");
+                                    //Se mueve el paquete una posicion
+                                    printf("El paquete %d esta en la posicion %d.\n",listaTemp[posInLista]->id,listaTemp[posInLista]->pos);
+                                    listaTemp[posInLista]->pos+=1;
+                                    printf("Se mueve el paquete %d a la posicion %d.\n",listaTemp[posInLista]->id,listaTemp[posInLista]->pos);
+                                    //Se activa el segmento para mostrar
+                                    printf("Se pone el estado en 1.\n");
+                                    banda[listaTemp[posInLista]->pos].estado=1;
+                                    //Se le asigna el paquete
+                                    banda[listaTemp[posInLista]->pos].paquete=listaTemp[posInLista];
+                                    int tiempoCal = 500;
+                                    usleep(tiempoCal*1000);
+                                    time+=tiempoCal;
+                                    if(listaTemp[posInLista]->pos==(tamanoBanda-1)){
+                                        list_remove_by_data(&izquierdo,*listaTemp[posInLista]);
+                                        banda[listaTemp[posInLista]->pos].paquete->estado=0;
+                                        ++paquetesEnviados;
+                                        printf("Paquete enviado!\n");
                                     }
                                 }
                                 ++posInLista;
-                                if(posInLista==w){
+                                if(posInLista==wtemp){
                                     posInLista = 0;
                                 }
                             }
+                            printf("Lista despues de enviados\n");
+                            list_All(izquierdo);
                         }
                         break;
                     //Prioridad
                     case 2:
+                        if(lado==0){
+                            int tamanoLista = list_length(derecho);
+                            paquete *listaTemp[tamanoLista];
+                            if(1){
 
+                            }
+                        }
+                        else{
+
+                        }
+                        
                         break;
                     //El mas corto
                     case 3:
