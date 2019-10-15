@@ -18,6 +18,8 @@ paquete* getPaqueteNode(list_node *temp);
 list_node* list_create(paquete data);
 void list_destroy(list_node **list);
 list_node* list_insert_after(list_node *node, paquete data);
+void swap(struct list_node *a, struct list_node *b);
+void bubbleSort(struct list_node *start,int tipo);
 list_node* list_insert_beginning(list_node *list, paquete data);
 void list_insert_end(list_node *head, paquete data);
 void list_remove(list_node **list, list_node *node);

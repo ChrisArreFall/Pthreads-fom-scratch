@@ -20,7 +20,7 @@ $(BIB_E) : $(OBJ)
 	$(NM) -s $(BIB_E)
 
 $(OBJ) : 
-	$(CC) -c $(APP) 
+	$(CC) -c $(APP) -lm
 	$(CC) -c $(APPSC)
 	$(CC) -c $(APPPL)
 

@@ -2,6 +2,8 @@
 #define LL_C
 #include <malloc.h>
 #include <ucontext.h>
+#include <time.h>   // clock_gettime, CLOCK_REALTIME
+#include <math.h>
 
 #include "../include/scheduler.h"
 
@@ -26,7 +28,9 @@ typedef struct
 	ucontext_t context;     // Almacena el contexto
 	int id;
 	int active;             // 0 si no esta activo, 1 si lo esta
-	int scheduler;			// Round Robin = 0,Prioridad = 1, SF = 3, GF = 4, RT = 5  
+	int scheduler;			// Round Robin = 0,Prioridad = 1, SF = 3, GF = 4, RT = 5 
+	long time; 
+	int pause;
 } lpthread;
 
 
@@ -71,13 +75,21 @@ void Lthread_yield(){
         //Usando swapcontext
 		swapcontext( &lpthreadList[currentlpthread].context, &mainContext );
 	}
-	// Si no, esto significa que nos encontramos en el main thread 
 	else{
 		if ( numLpthreads == 0 ){
             return;
         }
-		//Procedemos a guardar el thread actual
+		//Procedemos a cambiar al siguiente thread
 		currentlpthread = (currentlpthread + 1) % numLpthreads;
+		struct timespec spec;
+		clock_gettime(CLOCK_REALTIME, &spec);
+		long now = round(spec.tv_nsec / 1.0e6);
+		while(now-lpthreadList[currentlpthread].time<lpthreadList[currentlpthread].pause){
+			clock_gettime(CLOCK_REALTIME, &spec);
+			now = round(spec.tv_nsec / 1.0e6);
+			currentlpthread = (currentlpthread + 1) % numLpthreads;
+			printf("time %03ld\n",now-lpthreadList[currentlpthread].time);
+		}
 		
 		LF_DEBUG_OUT( "Cambiando al thread: %d.", currentlpthread );
 		inLpthread = 1;
@@ -90,13 +102,12 @@ void Lthread_yield(){
 		if ( lpthreadList[currentlpthread].active == 0 ){
 			LF_DEBUG_OUT( "Lpthread %d ha terminado.\n", currentlpthread );
 			//Limpiar significa liberar el stack
-            //LF_DEBUG_OUT( "Iniciando limpieza.\n");
+            //LF_DEBUG_OUT("Iniciando limpieza.\n");
 			free( lpthreadList[currentlpthread].context.uc_stack.ss_sp );
 			//LF_DEBUG_OUT( "Limpieza terminada.\n");
             //Intercambiar el ultimo lpthread con el actual vacio
 			-- numLpthreads;
-			if ( currentlpthread != numLpthreads )
-			{
+			if ( currentlpthread != numLpthreads ){
 				lpthreadList[ currentlpthread ] = lpthreadList[ numLpthreads ];
 			}
 			lpthreadList[ numLpthreads ].active = 0;		
@@ -162,8 +173,7 @@ int Lthread_create( void (*func)(int,int),int argc,int arg1, int arg2){
 }
 
 
-int Lthread_wait()
-{
+int Lthread_wait(){
 	int threadsRemaining = 0;
 	
 	//Si estamos en un thread, esperamos a que todos los otros threads terminen
@@ -195,6 +205,15 @@ int Lthread_join(int id){
 		}
 	}
 	return LF_NOERROR;
+}
+
+void Lthread_pause(int pause){
+	struct timespec spec;
+	clock_gettime(CLOCK_REALTIME, &spec);
+	long now = round(spec.tv_nsec / 1.0e6);
+	lpthreadList[currentlpthread].time = now;
+	lpthreadList[currentlpthread].pause = pause;
+	Lthread_yield();
 }
 
 

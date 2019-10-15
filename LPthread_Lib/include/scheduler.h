@@ -10,7 +10,7 @@
 typedef struct segmento segmento;
 
 //scheduler(derecho, izquierdo,*banda,selectedScheduler, metodoFlujo, w);
-void scheduler(list_node *derecho,list_node *izquierdo,struct segmento* banda,int tamanoBanda ,int schedulerType,int metodoFlujo, int w);
+void scheduler(list_node *derecho,list_node *izquierdo,struct segmento* banda,int tamanoBanda ,int schedulerType,int metodoFlujo, int w, int timeC);
 
 
 #endif

@@ -7,5 +7,5 @@ all : $(STA)
 
 
 $(STA) :
-	$(CC) $(FLAGS) ../bin/$(STA) $(APP).c ../lib/$(LIB).a
+	$(CC) $(FLAGS) ../bin/$(STA) $(APP).c ../lib/$(LIB).a -lm
 

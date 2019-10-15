@@ -64,6 +64,7 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 	int w;
 	int porcPaqRad;
 	int porcPaqUrg;
+	int timeC = 3000;
 	
 	//Si es la banda 1
 	if(numBanda==1){
@@ -123,7 +124,7 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 			int numPaquetes; 
 			for(numPaquetes = (abs(rand()) % 8)+3;numPaquetes>0;--numPaquetes){
 				//Creo paquete 
-				struct paquete paqueteTemp = { .id = id, .tipo = (abs(rand()) % 3),.prioridad = (abs(rand()) % 11), .masa = (abs(rand()) % 10) + 1, .lado = (abs(rand()) % 2), .estado = 0};
+				struct paquete paqueteTemp = { .id = id, .tipo = (abs(rand()) % 3), .masa = (abs(rand()) % 10) + 1, .lado = (abs(rand()) % 2), .estado = 0};
 				printf("Se ha creado el siguiente paquete con id %d \n",paqueteTemp.id);
 				printf("tipo: %d \n",paqueteTemp.tipo);
 				printf("masa: %d \n",paqueteTemp.masa);
@@ -152,15 +153,15 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 		list_All(derecho);
 		printf("Izquierdo:\n");
 		list_All(izquierdo);
-		scheduler(derecho, izquierdo,banda,largoBanda,selectedScheduler, metodoFlujo, w);
+		scheduler(derecho, izquierdo,banda,largoBanda,selectedScheduler, metodoFlujo, w, timeC);
 		printf("Derecho:\n");
 		list_All(derecho);
 		printf("Izquierdo:\n");
 		list_All(izquierdo);
 		//Revisamos si ha habido un cambio en el estado de la banda por medi ode hardware o software
-		activoTemp = estadoBanda(numBanda);
+		//activoTemp = estadoBanda(numBanda);
 		Lthread_yield();
-		sleep(1);
+		sleep(4);
 	}
 	return;
 }
@@ -210,7 +211,7 @@ void squares(){
 	//sleep( 5 );
 	for ( i = 0; i < 10; ++ i ){
 		printf( "%d*%d = %d\n", i, i, i*i );
-		Lthread_yield();
+		Lthread_pause(500);
 	}
 }
 
@@ -220,9 +221,9 @@ int main(){
 
 	srand(time(0)); 
 	
-	Lthread_create( &bandaTransoportadora, 2, 1, 1);
+	//Lthread_create( &bandaTransoportadora, 2, 1, 5);
 	Lthread_create( &thread1, 0, 0, 0);
-	//Lthread_create( &fibonacchi, 0, 0, 0);
+	Lthread_create( &squares, 0, 0, 0);
 	//Lthread_create( &fibonacchi, 0, 0, 0);
 	//Lthread_create( &fibonacchi, 0, 0, 0);
 

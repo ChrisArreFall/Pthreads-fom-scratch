@@ -4,8 +4,7 @@
 
 typedef struct paquete {
 	int id;
-	int tipo;				//0 normal, 1 urgente, 2 radioactivo
-   int prioridad;       //0-10 prioridad
+	int tipo;				//0 radioactivo, 1 urgente, 2 normal
 	int masa;				//Se definio que es un numero entre 1 y 10 kg
 	int lado;  				//0 derecha, 1 izquierda
 	int estado;				//0 si aun no ha pasado al lado opuesto, 1 si ya el paquete esta listo
@@ -34,13 +33,65 @@ list_node* list_create(paquete data){
 	return l;
 }
 
+void list_All(list_node *list){
+   int len = 0;
+   while (list) {
+		if (list->next == NULL) break;
+		list = list->next;
+      printf("Elemento %d con id %d tipo %d masa %d\n",len,list->data.id,list->data.tipo,list->data.masa);
+      ++len;
+	}
+}
+
+
+
+/* function to swap data of two nodes a and b*/
+void swap(struct list_node *a, struct list_node *b) { 
+    paquete temp = a->data; 
+    a->data = b->data; 
+    b->data = temp; 
+} 
+
+
+/* Bubble sort the given linked list */
+void bubbleSort(struct list_node *start,int tipo) { 
+    int swapped, i; 
+    struct list_node *ptr1; 
+    struct list_node *lptr = NULL; 
+  
+    /* Checking for empty list */
+    if (start == NULL)  
+        return; 
+    do{ 
+        swapped = 0; 
+        ptr1 = start; 
+  
+        while (ptr1->next != lptr) {
+			if(tipo == 0){
+				if (ptr1->data.tipo > ptr1->next->data.tipo) {  
+					swap(ptr1, ptr1->next); 
+					swapped = 1; 
+            	} 
+			}
+            if(tipo == 1){
+				if (ptr1->data.masa > ptr1->next->data.masa) {  
+					swap(ptr1, ptr1->next); 
+					swapped = 1; 
+            	}
+			}
+            ptr1 = ptr1->next; 
+        } 
+        lptr = ptr1; 
+    } 
+    while (swapped); 
+
+} 
 
 
 /* Creates a list node and inserts it after the specified node
  * Arguments: A node to insert after and the data the new node will contain
  */
-list_node* list_insert_after(list_node *node, paquete data)
-{
+list_node* list_insert_after(list_node *node, paquete data){
 	list_node *new_node = list_create(data);
 	if (new_node) {
 		new_node->next = node->next;
@@ -170,16 +221,6 @@ int list_length(list_node *list){
       ++len;
 	}
 	return len;
-}
-
-void list_All(list_node *list){
-   int len = 0;
-   while (list) {
-		if (list->next == NULL) break;
-		list = list->next;
-      printf("Elemento %d con id %d\n",len,list->data.id);
-      ++len;
-	}
 }
 
 list_node* list_getAt(list_node *list, int pos){
