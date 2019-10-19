@@ -98,7 +98,9 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 	printf("porcPaqUrg: %d\n",porcPaqUrg);
 
 	//Banda que se abstrae como una lista de segmentos
-	struct segmento banda[largoBanda];
+	struct banda banda;
+	banda.tamano = largoBanda;
+	banda.id = numBanda;
 	//Que tienen un estado asociado el cual nos dice si alguien la esta ocupando
 	int estadoBandat = 0;
 	//Numero de paquetes en total
@@ -153,7 +155,10 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 		list_All(derecho);
 		printf("Izquierdo:\n");
 		list_All(izquierdo);
-		scheduler(derecho, izquierdo,banda,largoBanda,selectedScheduler, metodoFlujo, w, timeC);
+		scheduler(derecho, izquierdo,&banda,largoBanda,selectedScheduler, metodoFlujo, w, timeC);
+		if(derecho->next->data.id==0){
+			list_remove(&derecho,derecho->next);
+		}
 		printf("Derecho:\n");
 		list_All(derecho);
 		printf("Izquierdo:\n");
@@ -221,9 +226,9 @@ int main(){
 
 	srand(time(0)); 
 	
-	//Lthread_create( &bandaTransoportadora, 2, 1, 5);
-	Lthread_create( &thread1, 0, 0, 0);
-	Lthread_create( &squares, 0, 0, 0);
+	Lthread_create( &bandaTransoportadora, 2, 1, 5);
+	//Lthread_create( &thread1, 0, 0, 0);
+	//Lthread_create( &squares, 0, 0, 0);
 	//Lthread_create( &fibonacchi, 0, 0, 0);
 	//Lthread_create( &fibonacchi, 0, 0, 0);
 

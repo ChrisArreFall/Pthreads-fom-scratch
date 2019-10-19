@@ -7,10 +7,10 @@
 
 
 //Segmento de una banda, el largo de la banda nos dira cuantos segmentos deberia tener la misma
-typedef struct segmento segmento;
+typedef struct banda banda;
 
 //scheduler(derecho, izquierdo,*banda,selectedScheduler, metodoFlujo, w);
-void scheduler(list_node *derecho,list_node *izquierdo,struct segmento* banda,int tamanoBanda ,int schedulerType,int metodoFlujo, int w, int timeC);
+void scheduler(list_node *derecho,list_node *izquierdo,struct banda* banda,int tamanoBanda ,int schedulerType,int metodoFlujo, int w, int timeC);
 
 
 #endif

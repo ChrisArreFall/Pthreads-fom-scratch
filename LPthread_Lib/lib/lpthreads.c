@@ -80,16 +80,16 @@ void Lthread_yield(){
             return;
         }
 		//Procedemos a cambiar al siguiente thread
-		currentlpthread = (currentlpthread + 1) % numLpthreads;
-		struct timespec spec;
-		clock_gettime(CLOCK_REALTIME, &spec);
-		long now = round(spec.tv_nsec / 1.0e6);
-		while(now-lpthreadList[currentlpthread].time<lpthreadList[currentlpthread].pause){
-			clock_gettime(CLOCK_REALTIME, &spec);
-			now = round(spec.tv_nsec / 1.0e6);
+		//currentlpthread = (currentlpthread + 1) % numLpthreads;
+		//struct timespec spec;
+		//clock_gettime(CLOCK_REALTIME, &spec);
+		//long now = round(spec.tv_nsec / 1.0e6);
+		//while(now-lpthreadList[currentlpthread].time<lpthreadList[currentlpthread].pause){
+		//	clock_gettime(CLOCK_REALTIME, &spec);
+		//	now = round(spec.tv_nsec / 1.0e6);
 			currentlpthread = (currentlpthread + 1) % numLpthreads;
-			printf("time %03ld\n",now-lpthreadList[currentlpthread].time);
-		}
+		//	printf("time %03ld\n",now-lpthreadList[currentlpthread].time);
+		//}
 		
 		LF_DEBUG_OUT( "Cambiando al thread: %d.", currentlpthread );
 		inLpthread = 1;

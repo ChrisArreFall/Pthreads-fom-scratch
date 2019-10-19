@@ -3,16 +3,18 @@
 #include "packageList.c"
 #include "lpthreads.c"
 #include "../include/packageList.h"
-typedef struct segmento
+
+
+typedef struct banda
 {
-	paquete* paquete;		//paquete que se encuentra en el segmento
-	int estado;				//nos dice si hay algo en el segmento, esto seria para desplegar en la gui
-} segmento;
+	paquete paquete;		//paquete que se encuentra en el segmento
+	int posPaquete;			
+    int tamano;
+    int id;
+} banda;
 
 
-
-
-void scheduler(list_node *derecho,list_node *izquierdo,struct segmento *banda,int tamanoBanda,int schedulerType,int metodoFlujo, int w,int timeC){
+void scheduler(list_node *derecho,list_node *izquierdo,struct banda *banda,int tamanoBanda,int schedulerType,int metodoFlujo, int w,int timeC){
     //primero revisamos el controlador de flujo
     printf("Iniciando el Controlador de flujo...\n");
     printf("Scheduler elegido es %d!\n",schedulerType);
@@ -94,15 +96,14 @@ void scheduler(list_node *derecho,list_node *izquierdo,struct segmento *banda,in
                                 printf("Se mueve el paquete %d a la posicion %d.\n",listaTemp[posInLista]->id,listaTemp[posInLista]->pos);
                                 //Se activa el segmento para mostrar
                                 printf("Se pone el estado en 1.\n");
-                                banda[listaTemp[posInLista]->pos].estado=1;
                                 //Se le asigna el paquete
-                                banda[listaTemp[posInLista]->pos].paquete=listaTemp[posInLista];
+                                banda->paquete=*listaTemp[posInLista];
+                                banda->posPaquete=listaTemp[posInLista]->pos;
                                 int tiempoCal = 500;
                                 usleep(tiempoCal*1000);
                                 time+=tiempoCal;
                                 if(listaTemp[posInLista]->pos==0){
                                     list_remove_by_data(&derecho,*listaTemp[posInLista]);
-                                    banda[listaTemp[posInLista]->pos].paquete->estado=0;
                                     ++paquetesEnviados;
                                     printf("Paquete enviado!\n");
                                     break;
@@ -129,9 +130,8 @@ void scheduler(list_node *derecho,list_node *izquierdo,struct segmento *banda,in
                             while(listaTemp[posInLista]->pos>0){
                                 //Se activa el segmento para mostrar
                                 printf("Se pone el estado en 1.\n");
-                                banda[listaTemp[posInLista]->pos].estado=1;
-                                //Se le asigna el paquete
-                                banda[listaTemp[posInLista]->pos].paquete=listaTemp[posInLista];
+                                banda->paquete=*listaTemp[posInLista];
+                                banda->posPaquete=listaTemp[posInLista]->pos;
                                 int tiempoCal = 500;
                                 usleep(tiempoCal*1000);
                                 //Se mueve el paquete una posicion
@@ -173,15 +173,17 @@ void scheduler(list_node *derecho,list_node *izquierdo,struct segmento *banda,in
                                 printf("Se mueve el paquete %d a la posicion %d.\n",listaTemp[posInLista]->id,listaTemp[posInLista]->pos);
                                 //Se activa el segmento para mostrar
                                 printf("Se pone el estado en 1.\n");
-                                banda[listaTemp[posInLista]->pos].estado=1;
-                                //Se le asigna el paquete
-                                banda[listaTemp[posInLista]->pos].paquete=listaTemp[posInLista];
+                                banda->paquete=*listaTemp[posInLista];
+                                banda->posPaquete=listaTemp[posInLista]->pos;
                                 int tiempoCal = 500;
                                 usleep(tiempoCal*1000);
                                 time+=tiempoCal;
                                 if(listaTemp[posInLista]->pos==0){
+                                    printf("Eliminando paquete con id %d\n",listaTemp[posInLista]->id);
+                                    list_All(derecho);
+                                    printf("---\n");
                                     list_remove_by_data(&derecho,*listaTemp[posInLista]);
-                                    banda[listaTemp[posInLista]->pos].paquete->estado=0;
+                                    list_All(derecho);
                                     ++paquetesEnviados;
                                     printf("Paquete enviado!\n");
                                     break;
@@ -253,15 +255,16 @@ void scheduler(list_node *derecho,list_node *izquierdo,struct segmento *banda,in
                                     printf("Se mueve el paquete %d a la posicion %d.\n",listaTemp[posInLista]->id,listaTemp[posInLista]->pos);
                                     //Se activa el segmento para mostrar
                                     printf("Se pone el estado en 1.\n");
-                                    banda[listaTemp[posInLista]->pos].estado=1;
-                                    //Se le asigna el paquete
-                                    banda[listaTemp[posInLista]->pos].paquete=listaTemp[posInLista];
+                                    banda->paquete=*listaTemp[posInLista];
+                                    banda->posPaquete=listaTemp[posInLista]->pos;
                                     int tiempoCal = 500;
                                     usleep(tiempoCal*1000);
                                     time+=tiempoCal;
                                     if(listaTemp[posInLista]->pos==(tamanoBanda-1)){
+                                        printf("Eliminando paquete con id %d\n",listaTemp[posInLista]->id);
+                                        list_All(izquierdo);
                                         list_remove_by_data(&izquierdo,*listaTemp[posInLista]);
-                                        banda[listaTemp[posInLista]->pos].paquete->estado=0;
+                                        
                                         ++paquetesEnviados;
                                         printf("Paquete enviado!\n");
                                     }

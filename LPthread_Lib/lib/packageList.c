@@ -151,7 +151,7 @@ void list_remove(list_node **list, list_node *node)
 		}
 	}
 }
-
+//squigles
 /* Completely destroys a list
  * Arguments: A pointer to a pointer to a list
  */

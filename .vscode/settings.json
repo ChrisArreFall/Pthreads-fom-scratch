@@ -3,5 +3,6 @@
         "unordered_map": "c",
         "packagelist.h": "c",
         "scheduler.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
 }
