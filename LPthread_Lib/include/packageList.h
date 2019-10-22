@@ -30,4 +30,5 @@ list_node* list_find(list_node *list, int(*func)(list_node*,paquete), paquete da
 int list_length(list_node *list);
 void list_All(list_node *list);
 list_node* list_getAt(list_node *list, int pos);
+void list_Clean(list_node *list,int param);
 #endif

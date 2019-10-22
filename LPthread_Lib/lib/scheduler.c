@@ -7,12 +7,27 @@
 typedef struct banda
 {
     paquete paquete; //paquete que se encuentra en el segmento
-    int posPaquete;
     int tamano;
+    int letrero;  // 0 izquierda a derecha, 1 derecha a izquierda, 2 desactivado
     int id;
 } banda;
 
-void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, int tamanoBanda, int schedulerType, int metodoFlujo, int w, int timeC)
+void save_state(int id, banda *banda){
+    FILE *fp;
+
+    char file[15] = { };
+
+    sprintf(file, "../data/%d.txt", id);
+    fp = fopen(file, "w+");
+    char json[200] = { };
+    sprintf(json, "{\"paquete\": {\"id\": %d,\"tipo\": %d,\"masa\": %d,\"lado\": %d,\"estado\": %d,\"pos\": %d},\"tamano\": %d,\"letrero\": %d,\"id\": %d}", 
+                    banda->paquete.id,banda->paquete.tipo,banda->paquete.masa,banda->paquete.lado,banda->paquete.estado,banda->paquete.pos,banda->tamano,banda->letrero,banda->id);
+
+    fputs(json, fp);
+    fclose(fp);
+}
+
+void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *banda, int tamanoBanda, int schedulerType, int metodoFlujo, int w, int timeC)
 {
     //primero revisamos el controlador de flujo
     printf("Iniciando el Controlador de flujo...\n");
@@ -99,6 +114,13 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                         printf("Empieza el tiempo del round robin!.\n");
                         while (time < 1000)
                         {
+                            if (listaTemp[posInLista]->pos <= 0)
+                            {
+                                list_remove_by_data(&derecho, *listaTemp[posInLista]);
+                                ++paquetesEnviados;
+                                printf("Paquete enviado!\n");
+                                break;
+                            }
                             //Lthread_yield();
                             printf("Empieza el paso de paquetes!.\n");
                             //Se mueve el paquete una posicion
@@ -109,17 +131,14 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                             printf("Se pone el estado en 1.\n");
                             //Se le asigna el paquete
                             banda->paquete = *listaTemp[posInLista];
-                            banda->posPaquete = listaTemp[posInLista]->pos;
+                            
+
+                            //Tengo que almacenar el estado
+                            save_state(id,banda);
+
                             int tiempoCal = 500;
                             usleep(tiempoCal * 1000);
                             time += tiempoCal;
-                            if (listaTemp[posInLista]->pos == 0)
-                            {
-                                list_remove_by_data(&derecho, *listaTemp[posInLista]);
-                                ++paquetesEnviados;
-                                printf("Paquete enviado!\n");
-                                break;
-                            }
                         }
                         ++posInLista;
                         if (posInLista == wtemp)
@@ -145,12 +164,15 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                         //Pongo el primer paquete en la primera posicion de la banda
                         listaTemp[posInLista]->pos -= 1;
                         printf("Se mueve el paquete %d a la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
-                        while (listaTemp[posInLista]->pos > 0)
+                        while (listaTemp[posInLista]->pos >= 0)
                         {
                             //Se activa el segmento para mostrar
                             printf("Se pone el estado en 1.\n");
                             banda->paquete = *listaTemp[posInLista];
-                            banda->posPaquete = listaTemp[posInLista]->pos;
+                            
+                            //Tengo que almacenar el estado
+                            save_state(id,banda);
+
                             int tiempoCal = 500;
                             usleep(tiempoCal * 1000);
                             //Se mueve el paquete una posicion
@@ -188,20 +210,7 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                         printf("Empieza el tiempo del timeC!.\n");
                         while (time < timeC)
                         {
-                            //Lthread_yield();
-                            printf("Empieza el paso de paquetes!.\n");
-                            //Se mueve el paquete una posicion
-                            printf("El paquete %d esta en la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
-                            listaTemp[posInLista]->pos -= 1;
-                            printf("Se mueve el paquete %d a la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
-                            //Se activa el segmento para mostrar
-                            printf("Se pone el estado en 1.\n");
-                            banda->paquete = *listaTemp[posInLista];
-                            banda->posPaquete = listaTemp[posInLista]->pos;
-                            int tiempoCal = 500;
-                            usleep(tiempoCal * 1000);
-                            time += tiempoCal;
-                            if (listaTemp[posInLista]->pos == 0)
+                            if (listaTemp[posInLista]->pos <= 0)
                             {
                                 printf("Eliminando paquete con id %d\n", listaTemp[posInLista]->id);
                                 list_All(derecho);
@@ -212,6 +221,23 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                                 printf("Paquete enviado!\n");
                                 break;
                             }
+                            //Lthread_yield();
+                            printf("Empieza el paso de paquetes!.\n");
+                            //Se mueve el paquete una posicion
+                            printf("El paquete %d esta en la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
+                            listaTemp[posInLista]->pos -= 1;
+                            printf("Se mueve el paquete %d a la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
+                            //Se activa el segmento para mostrar
+                            printf("Se pone el estado en 1.\n");
+                            banda->paquete = *listaTemp[posInLista];
+
+                            //Tengo que almacenar el estado
+                            save_state(id,banda);
+                            
+                            int tiempoCal = 500;
+                            usleep(tiempoCal * 1000);
+                            time += tiempoCal;
+                            
                         }
                         ++posInLista;
                         if (posInLista == wtemp)
@@ -227,7 +253,6 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
             else
             {
                 printf("%d paquetes yendo de izquierda a derecha...\n", wtemp);
-                list_All(izquierdo);
                 int tamano = list_length(izquierdo);
                 //si hay menos paquetes que wtemp entonces tenemos que desfasar
                 if (tamano < wtemp)
@@ -243,6 +268,20 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                 //de tamano wtemp.
                 paquete *listaTemp[wtemp];
                 printf("metiendo %d paquetes a una lista temporal\n", wtemp);
+                list_All(izquierdo);
+                if (schedulerType == 2)
+                {
+                    printf("Ordenando...\n");
+                    bubbleSort(izquierdo, 0);
+                    list_All(izquierdo);
+                }
+                if (schedulerType == 3)
+                {
+                    printf("Ordenando...\n");
+                    bubbleSort(izquierdo, 1);
+                    list_All(izquierdo);
+                }
+
                 for (int j = 0; j < wtemp; ++j)
                 {
                     paquete *paqueteSeleccionado = &list_getAt(izquierdo, j)->data;
@@ -250,10 +289,9 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                     listaTemp[j] = paqueteSeleccionado;
                     printf("Se ha metido exitosamente con el id %d en la posicion %d\n", listaTemp[j]->id, j);
                 }
-                switch (schedulerType)
+                printf("Iniciando el scheduler...\n");
+                if (schedulerType == 1)
                 {
-                //Round robin
-                case 1:
                     printf("Scheduler elegido es round robin!\n");
                     //Finalmente tenemos que empezar con el calendarizador de tipo round robin
                     //Round robin le da un tiempo igual para que cada paquete vaya de un lado a otro
@@ -280,6 +318,111 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                         printf("Empieza el tiempo del round robin!.\n");
                         while (time < 1000)
                         {
+                            if (listaTemp[posInLista]->pos >= tamanoBanda)
+                            {
+                                list_remove_by_data(&izquierdo, *listaTemp[posInLista]);
+                                ++paquetesEnviados;
+                                printf("Paquete enviado!\n");
+                                break;
+                            }
+                            //Lthread_yield();
+                            printf("Empieza el paso de paquetes!.\n");
+                            //Se mueve el paquete una posicion
+                            printf("El paquete %d esta en la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
+                            listaTemp[posInLista]->pos += 1;
+                            printf("Se mueve el paquete %d a la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
+                            //Se le asigna el paquete
+                            banda->paquete = *listaTemp[posInLista];
+
+
+                            //Tengo que almacenar el estado
+                            save_state(id,banda);
+                            
+                            int tiempoCal = 500;
+                            usleep(tiempoCal * 1000);
+                            time += tiempoCal;
+                        }
+                        ++posInLista;
+                        if (posInLista == wtemp)
+                        {
+                            posInLista = 0;
+                        }
+                    }
+                }
+                else if (schedulerType == 2 || schedulerType == 3 || schedulerType == 4)
+                {
+                    if (schedulerType == 2)
+                        printf("Scheduler elegido es prioridad!\n");
+                    if (schedulerType == 3)
+                        printf("Scheduler elegido es mas corto primero!\n");
+                    if (schedulerType == 4)
+                        printf("Scheduler elegido es fifo!\n");
+                    posInLista = 0;
+                    printf("Empieza el while.\n");
+                    while (paquetesEnviados != wtemp)
+                    {
+                        printf("Empieza el paso del paquete!.\n");
+                        printf("El paquete %d esta en la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
+                        //Pongo el primer paquete en la primera posicion de la banda
+                        listaTemp[posInLista]->pos += 1;
+                        printf("Se mueve el paquete %d a la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
+                        while (listaTemp[posInLista]->pos < tamanoBanda)
+                        {
+                            //Se activa el segmento para mostrar
+                            printf("Se pone el estado en 1.\n");
+                            banda->paquete = *listaTemp[posInLista];
+                            
+                            //Tengo que almacenar el estado
+                            save_state(id,banda);
+
+                            int tiempoCal = 500;
+                            usleep(tiempoCal * 1000);
+                            //Se mueve el paquete una posicion
+                            printf("El paquete %d esta en la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
+                            listaTemp[posInLista]->pos += 1;
+                            printf("Se mueve el paquete %d a la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
+                        }
+                        list_remove_by_data(&izquierdo, *listaTemp[posInLista]);
+                        //banda[listaTemp[posInLista]->pos].paquete->estado=0;
+                        ++paquetesEnviados;
+                        printf("Paquete enviado!\n");
+                        ++posInLista;
+                    }
+                    printf("Ya se enviaron la cantidad de paquetes requeridos!.\n");
+                }
+                else if (schedulerType == 5)
+                {
+                    printf("Scheduler elegido es tiempo real!\n");
+
+                    //Va iterando la lista desde el final hasta 0 y despues empieza desde el final
+                    posInLista = 0;
+                    printf("Empieza el while.\n");
+                    while (true)
+                    {
+
+                        //si la lista esta vacia, significa que ya pasaron los 3
+                        if (paquetesEnviados == wtemp)
+                        {
+                            printf("Ya se enviaron la cantidad de paquetes requeridos!.\n");
+                            break;
+                        }
+                        //Ahora procedemos a pasarlos por la banda dandole un tiempo especifico a cada uno por timeC
+                        int time = 0;
+                        //Cambiar esto para que vaya de derecha a izquierda
+                        printf("Empieza el tiempo del timeC!.\n");
+                        while (time < timeC)
+                        {
+                            if (listaTemp[posInLista]->pos >= tamanoBanda)
+                            {
+                                printf("Eliminando paquete con id %d\n", listaTemp[posInLista]->id);
+                                list_All(izquierdo);
+                                printf("---\n");
+                                list_remove_by_data(&izquierdo, *listaTemp[posInLista]);
+                                list_All(izquierdo);
+                                ++paquetesEnviados;
+                                printf("Paquete enviado!\n");
+                                break;
+                            }
                             //Lthread_yield();
                             printf("Empieza el paso de paquetes!.\n");
                             //Se mueve el paquete una posicion
@@ -289,19 +432,14 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                             //Se activa el segmento para mostrar
                             printf("Se pone el estado en 1.\n");
                             banda->paquete = *listaTemp[posInLista];
-                            banda->posPaquete = listaTemp[posInLista]->pos;
+                            
+                            //Tengo que almacenar el estado
+                            save_state(id,banda);
+
                             int tiempoCal = 500;
                             usleep(tiempoCal * 1000);
                             time += tiempoCal;
-                            if (listaTemp[posInLista]->pos == (tamanoBanda - 1))
-                            {
-                                printf("Eliminando paquete con id %d\n", listaTemp[posInLista]->id);
-                                list_All(izquierdo);
-                                list_remove_by_data(&izquierdo, *listaTemp[posInLista]);
-
-                                ++paquetesEnviados;
-                                printf("Paquete enviado!\n");
-                            }
+                            
                         }
                         ++posInLista;
                         if (posInLista == wtemp)
@@ -309,11 +447,9 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                             posInLista = 0;
                         }
                     }
-                default:
-                    break;
                 }
                 printf("Lista despues de enviados\n");
-                list_All(izquierdo);
+                list_All(derecho);
             }
             lado++;
         }
@@ -321,14 +457,18 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
         break;
     //Letrero
     case 2:
+    {
         //int letrero = 0;
         int tamanoD = list_length(derecho);
         paquete *listaTempD[tamanoD];
         int tamanoI = list_length(izquierdo);
         paquete *listaTempI[tamanoI];
+
         while (lado < 2)
         {
             int timeL = 0;
+            int wtemp = w;
+            int paquetesEnviados = 0;
             printf("Controlador de flujo elegido es Letrero...\n");
             //como es equidad se ejecuta dos veces uno para la derecha otro para la izquierda
             while (timeL < 5)
@@ -346,8 +486,8 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                     {
                         paquete *paqueteSeleccionado = &list_getAt(derecho, j)->data;
                         printf("metiendo paquete %d con id %d\n", j, paqueteSeleccionado->id);
-                        listaTemp[j] = paqueteSeleccionado;
-                        printf("Se ha metido exitosamente con el id %d en la posicion %d\n", listaTemp[j]->id, j);
+                        listaTempD[j] = paqueteSeleccionado;
+                        printf("Se ha metido exitosamente con el id %d en la posicion %d\n", listaTempD[j]->id, j);
                     }
                     printf("Iniciando el scheduler...\n");
                     if (schedulerType == 1)
@@ -381,21 +521,21 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                                 //Lthread_yield();
                                 printf("Empieza el paso de paquetes!.\n");
                                 //Se mueve el paquete una posicion
-                                printf("El paquete %d esta en la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
-                                listaTemp[posInLista]->pos -= 1;
-                                printf("Se mueve el paquete %d a la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
+                                printf("El paquete %d esta en la posicion %d.\n", listaTempD[posInLista]->id, listaTempD[posInLista]->pos);
+                                listaTempD[posInLista]->pos -= 1;
+                                printf("Se mueve el paquete %d a la posicion %d.\n", listaTempD[posInLista]->id, listaTempD[posInLista]->pos);
                                 //Se activa el segmento para mostrar
                                 printf("Se pone el estado en 1.\n");
                                 //Se le asigna el paquete
-                                banda->paquete = *listaTemp[posInLista];
-                                banda->posPaquete = listaTemp[posInLista]->pos;
+                                banda->paquete = *listaTempD[posInLista];
+                                
                                 int tiempoCal = 500;
                                 usleep(tiempoCal * 1000);
                                 time += tiempoCal;
                                 timeL += tiempoCal;
-                                if (listaTemp[posInLista]->pos == 0)
+                                if (listaTempD[posInLista]->pos == 0)
                                 {
-                                    list_remove_by_data(&derecho, *listaTemp[posInLista]);
+                                    list_remove_by_data(&derecho, *listaTempD[posInLista]);
                                     ++paquetesEnviados;
                                     printf("Paquete enviado!\n");
                                     break;
@@ -421,25 +561,25 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                         while (paquetesEnviados != wtemp)
                         {
                             printf("Empieza el paso del paquete!.\n");
-                            printf("El paquete %d esta en la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
+                            printf("El paquete %d esta en la posicion %d.\n", listaTempD[posInLista]->id, listaTempD[posInLista]->pos);
                             //Pongo el primer paquete en la primera posicion de la banda
-                            listaTemp[posInLista]->pos -= 1;
-                            printf("Se mueve el paquete %d a la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
-                            while (listaTemp[posInLista]->pos > 0)
+                            listaTempD[posInLista]->pos -= 1;
+                            printf("Se mueve el paquete %d a la posicion %d.\n", listaTempD[posInLista]->id, listaTempD[posInLista]->pos);
+                            while (listaTempD[posInLista]->pos > 0)
                             {
                                 //Se activa el segmento para mostrar
                                 printf("Se pone el estado en 1.\n");
-                                banda->paquete = *listaTemp[posInLista];
-                                banda->posPaquete = listaTemp[posInLista]->pos;
+                                banda->paquete = *listaTempD[posInLista];
+                                
                                 int tiempoCal = 500;
                                 usleep(tiempoCal * 1000);
                                 timeL += tiempoCal;
                                 //Se mueve el paquete una posicion
-                                printf("El paquete %d esta en la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
-                                listaTemp[posInLista]->pos -= 1;
-                                printf("Se mueve el paquete %d a la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
+                                printf("El paquete %d esta en la posicion %d.\n", listaTempD[posInLista]->id, listaTempD[posInLista]->pos);
+                                listaTempD[posInLista]->pos -= 1;
+                                printf("Se mueve el paquete %d a la posicion %d.\n", listaTempD[posInLista]->id, listaTempD[posInLista]->pos);
                             }
-                            list_remove_by_data(&derecho, *listaTemp[posInLista]);
+                            list_remove_by_data(&derecho, *listaTempD[posInLista]);
                             //banda[listaTemp[posInLista]->pos].paquete->estado=0;
                             ++paquetesEnviados;
                             printf("Paquete enviado!\n");
@@ -472,23 +612,23 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                                 //Lthread_yield();
                                 printf("Empieza el paso de paquetes!.\n");
                                 //Se mueve el paquete una posicion
-                                printf("El paquete %d esta en la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
-                                listaTemp[posInLista]->pos -= 1;
-                                printf("Se mueve el paquete %d a la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
+                                printf("El paquete %d esta en la posicion %d.\n", listaTempD[posInLista]->id, listaTempD[posInLista]->pos);
+                                listaTempD[posInLista]->pos -= 1;
+                                printf("Se mueve el paquete %d a la posicion %d.\n", listaTempD[posInLista]->id, listaTempD[posInLista]->pos);
                                 //Se activa el segmento para mostrar
                                 printf("Se pone el estado en 1.\n");
-                                banda->paquete = *listaTemp[posInLista];
-                                banda->posPaquete = listaTemp[posInLista]->pos;
+                                banda->paquete = *listaTempD[posInLista];
+                                
                                 int tiempoCal = 500;
                                 usleep(tiempoCal * 1000);
                                 time += tiempoCal;
                                 timeL += tiempoCal;
-                                if (listaTemp[posInLista]->pos == 0)
+                                if (listaTempD[posInLista]->pos == 0)
                                 {
-                                    printf("Eliminando paquete con id %d\n", listaTemp[posInLista]->id);
+                                    printf("Eliminando paquete con id %d\n", listaTempD[posInLista]->id);
                                     list_All(derecho);
                                     printf("---\n");
-                                    list_remove_by_data(&derecho, *listaTemp[posInLista]);
+                                    list_remove_by_data(&derecho, *listaTempD[posInLista]);
                                     list_All(derecho);
                                     ++paquetesEnviados;
                                     printf("Paquete enviado!\n");
@@ -516,8 +656,8 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                     {
                         paquete *paqueteSeleccionado = &list_getAt(izquierdo, j)->data;
                         printf("metiendo paquete %d con id %d\n", j, paqueteSeleccionado->id);
-                        listaTemp[j] = paqueteSeleccionado;
-                        printf("Se ha metido exitosamente con el id %d en la posicion %d\n", listaTemp[j]->id, j);
+                        listaTempI[j] = paqueteSeleccionado;
+                        printf("Se ha metido exitosamente con el id %d en la posicion %d\n", listaTempI[j]->id, j);
                     }
                     printf("Iniciando el scheduler...\n");
                 }
@@ -525,7 +665,8 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
             }
             timeL = 0;
         }
-        break;
+    }
+    break;
     //Aleatorio
     case 3:
         while (lado < 2)
@@ -535,6 +676,7 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
             //Como es aleatorio, pasaran n paquetes donde n es un numero que es calculado aleatoriamente
             int n = (abs(rand()) % 5);
             int paquetesEnviados = 0;
+            int wtemp = w;
             while (paquetesEnviados < n)
             {
                 if (lado == 0)
@@ -604,7 +746,7 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                                 printf("Se pone el estado en 1.\n");
                                 //Se le asigna el paquete
                                 banda->paquete = *listaTemp[posInLista];
-                                banda->posPaquete = listaTemp[posInLista]->pos;
+                                
                                 int tiempoCal = 500;
                                 usleep(tiempoCal * 1000);
                                 time += tiempoCal;
@@ -645,7 +787,7 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                                 //Se activa el segmento para mostrar
                                 printf("Se pone el estado en 1.\n");
                                 banda->paquete = *listaTemp[posInLista];
-                                banda->posPaquete = listaTemp[posInLista]->pos;
+                                
                                 int tiempoCal = 500;
                                 usleep(tiempoCal * 1000);
                                 //Se mueve el paquete una posicion
@@ -692,7 +834,7 @@ void scheduler(list_node *derecho, list_node *izquierdo, struct banda *banda, in
                                 //Se activa el segmento para mostrar
                                 printf("Se pone el estado en 1.\n");
                                 banda->paquete = *listaTemp[posInLista];
-                                banda->posPaquete = listaTemp[posInLista]->pos;
+                                
                                 int tiempoCal = 500;
                                 usleep(tiempoCal * 1000);
                                 time += tiempoCal;

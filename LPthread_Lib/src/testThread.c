@@ -136,12 +136,14 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 					paqueteTemp.pos = largoBanda;
 					//Agrego paquete a la lista
 					list_insert_end(derecho, paqueteTemp);
+					printf("--");
 					printf("Existen %d paquetes en el lado derecho...\n",list_length(derecho));	
 				}
 				else{
 					paqueteTemp.pos = -1;
 					//Agrego paquete a la lista
 					list_insert_end(izquierdo, paqueteTemp);
+					printf("--");
 					printf("Existen %d paquetes en el lado izquierdo...\n",list_length(izquierdo));
 				}
 				printf("Pos %d\n",paqueteTemp.pos);
@@ -155,10 +157,7 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 		list_All(derecho);
 		printf("Izquierdo:\n");
 		list_All(izquierdo);
-		scheduler(derecho, izquierdo,&banda,largoBanda,selectedScheduler, metodoFlujo, w, timeC);
-		if(derecho->next->data.id==0){
-			list_remove(&derecho,derecho->next);
-		}
+		scheduler(numBanda,derecho, izquierdo,&banda,largoBanda,selectedScheduler, metodoFlujo, w, timeC);
 		printf("Derecho:\n");
 		list_All(derecho);
 		printf("Izquierdo:\n");
@@ -226,9 +225,10 @@ int main(){
 
 	srand(time(0)); 
 	
-	Lthread_create( &bandaTransoportadora, 2, 1, 5);
-	//Lthread_create( &thread1, 0, 0, 0);
-	//Lthread_create( &squares, 0, 0, 0);
+	//										  int numBanda,int selectedScheduler
+	//Lthread_create( &bandaTransoportadora, 2, 1, 2);
+	Lthread_create( &thread1, 0, 0, 0);
+	Lthread_create( &squares, 0, 0, 0);
 	//Lthread_create( &fibonacchi, 0, 0, 0);
 	//Lthread_create( &fibonacchi, 0, 0, 0);
 
