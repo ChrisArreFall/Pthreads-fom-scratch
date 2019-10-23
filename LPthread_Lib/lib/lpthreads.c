@@ -80,16 +80,30 @@ void Lthread_yield(){
             return;
         }
 		//Procedemos a cambiar al siguiente thread
-		//currentlpthread = (currentlpthread + 1) % numLpthreads;
-		//struct timespec spec;
-		//clock_gettime(CLOCK_REALTIME, &spec);
-		//long now = round(spec.tv_nsec / 1.0e6);
-		//while(now-lpthreadList[currentlpthread].time<lpthreadList[currentlpthread].pause){
-		//	clock_gettime(CLOCK_REALTIME, &spec);
-		//	now = round(spec.tv_nsec / 1.0e6);
-			currentlpthread = (currentlpthread + 1) % numLpthreads;
-		//	printf("time %03ld\n",now-lpthreadList[currentlpthread].time);
-		//}
+		currentlpthread = (currentlpthread + 1) % numLpthreads;
+		if(lpthreadList[currentlpthread].pause!=0){
+			struct timespec spec;
+			clock_gettime(CLOCK_REALTIME, &spec);
+			long now = round(spec.tv_nsec / 1.0e6);
+			printf("%d Now time yield: %ld\n",lpthreadList[currentlpthread].id,now);
+			printf("%d Pause time yeild: %d\n",lpthreadList[currentlpthread].id,lpthreadList[currentlpthread].pause);
+			while(now<lpthreadList[currentlpthread].pause){
+				clock_gettime(CLOCK_REALTIME, &spec);
+				now = round(spec.tv_nsec / 1.0e6);
+				if(now==999){
+					for(int j = 0;j<numLpthreads;j++){
+						if(lpthreadList[j].pause!=0){
+							lpthreadList[j].pause -= 999;
+						}
+					}
+					printf("%d Pause time while: %d\n",lpthreadList[currentlpthread].id,lpthreadList[currentlpthread].pause);
+					usleep(200);
+				}
+				currentlpthread = (currentlpthread + 1) % numLpthreads;
+				//printf("Now time while: %d\n",now);
+				//printf("Pause time while: %d\n",lpthreadList[currentlpthread].pause);
+			}
+		}
 		
 		LF_DEBUG_OUT( "Cambiando al thread: %d.", currentlpthread );
 		inLpthread = 1;
@@ -153,6 +167,8 @@ int Lthread_create( void (*func)(int,int),int argc,int arg1, int arg2){
 	lpthreadList[numLpthreads].context.uc_stack.ss_size = THREAD_STACK;
 	lpthreadList[numLpthreads].context.uc_stack.ss_flags = 0;	
 	lpthreadList[numLpthreads].id = numLpthreads;
+	lpthreadList[numLpthreads].pause = 0;
+	lpthreadList[numLpthreads].time = 0;
 	if ( lpthreadList[numLpthreads].context.uc_stack.ss_sp == 0 )
 	{
 		LF_DEBUG_OUT( "Error: No se le pudo inicializar un stack nuevo.", 0 );
@@ -212,8 +228,12 @@ void Lthread_pause(int pause){
 	clock_gettime(CLOCK_REALTIME, &spec);
 	long now = round(spec.tv_nsec / 1.0e6);
 	lpthreadList[currentlpthread].time = now;
-	lpthreadList[currentlpthread].pause = pause;
+	lpthreadList[currentlpthread].pause = pause+now;
+	//printf("Now time: %d\n",lpthreadList[currentlpthread].time);
+	//printf("Pause time: %d\n",lpthreadList[currentlpthread].pause);
 	Lthread_yield();
+	printf("===============%d================\n",lpthreadList[currentlpthread].id);
+	lpthreadList[currentlpthread].pause = 0;
 }
 
 

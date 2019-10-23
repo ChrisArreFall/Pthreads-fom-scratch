@@ -54,15 +54,17 @@ void list_All(list_node *list)
 void swap(struct list_node *a, struct list_node *b)
 {
 	paquete temp = a->data;
+	printf("swapping %d %d\n",a->data.id,b->data.id);
 	a->data = b->data;
 	b->data = temp;
+	printf("swapped %d %d\n",a->data.id,b->data.id);
 }
 
 /* Bubble sort the given linked list */
 void bubbleSort(struct list_node *start, int tipo)
 {
 	int swapped, i;
-	struct list_node *ptr1;
+	struct list_node *ptr1 = NULL;
 	struct list_node *lptr = NULL;
 
 	/* Checking for empty list */
@@ -137,7 +139,6 @@ void list_insert_end(list_node *head, paquete data)
 		{
 			for (list_node *it = head; it != NULL; it = it->next)
 			{
-				printf("ddd");
 				if (it->next == NULL)
 				{
 					it->next = new_node;

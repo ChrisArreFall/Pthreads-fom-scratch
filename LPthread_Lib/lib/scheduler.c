@@ -27,7 +27,7 @@ void save_state(int id, banda *banda){
     fclose(fp);
 }
 
-void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *banda, int tamanoBanda, int schedulerType, int metodoFlujo, int w, int timeC)
+void scheduler(int id,int fuerza,list_node *derecho, list_node *izquierdo, struct banda *banda, int tamanoBanda, int schedulerType, int metodoFlujo, int w, int timeC)
 {
     //primero revisamos el controlador de flujo
     printf("Iniciando el Controlador de flujo...\n");
@@ -132,12 +132,11 @@ void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *ba
                             //Se le asigna el paquete
                             banda->paquete = *listaTemp[posInLista];
                             
-
                             //Tengo que almacenar el estado
                             save_state(id,banda);
 
-                            int tiempoCal = 500;
-                            usleep(tiempoCal * 1000);
+                            int tiempoCal = (banda->paquete.masa/fuerza)*5000;
+                            Lthread_pause(tiempoCal);
                             time += tiempoCal;
                         }
                         ++posInLista;
@@ -173,8 +172,9 @@ void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *ba
                             //Tengo que almacenar el estado
                             save_state(id,banda);
 
-                            int tiempoCal = 500;
-                            usleep(tiempoCal * 1000);
+                            int tiempoCal = (banda->paquete.masa/fuerza)*5000;
+                            printf("ALSIHVSKHJGCVLKAHV %d\n",tiempoCal);
+                            Lthread_pause(tiempoCal);
                             //Se mueve el paquete una posicion
                             printf("El paquete %d esta en la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
                             listaTemp[posInLista]->pos -= 1;
@@ -235,7 +235,7 @@ void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *ba
                             save_state(id,banda);
                             
                             int tiempoCal = 500;
-                            usleep(tiempoCal * 1000);
+                            Lthread_pause(tiempoCal);
                             time += tiempoCal;
                             
                         }
@@ -339,7 +339,7 @@ void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *ba
                             save_state(id,banda);
                             
                             int tiempoCal = 500;
-                            usleep(tiempoCal * 1000);
+                            Lthread_pause(tiempoCal);
                             time += tiempoCal;
                         }
                         ++posInLista;
@@ -375,8 +375,8 @@ void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *ba
                             //Tengo que almacenar el estado
                             save_state(id,banda);
 
-                            int tiempoCal = 500;
-                            usleep(tiempoCal * 1000);
+                            int tiempoCal = (banda->paquete.masa/fuerza)*5000;
+                            Lthread_pause(tiempoCal);
                             //Se mueve el paquete una posicion
                             printf("El paquete %d esta en la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
                             listaTemp[posInLista]->pos += 1;
@@ -437,7 +437,7 @@ void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *ba
                             save_state(id,banda);
 
                             int tiempoCal = 500;
-                            usleep(tiempoCal * 1000);
+                            Lthread_pause(tiempoCal);
                             time += tiempoCal;
                             
                         }
@@ -530,7 +530,7 @@ void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *ba
                                 banda->paquete = *listaTempD[posInLista];
                                 
                                 int tiempoCal = 500;
-                                usleep(tiempoCal * 1000);
+                                Lthread_pause(tiempoCal);
                                 time += tiempoCal;
                                 timeL += tiempoCal;
                                 if (listaTempD[posInLista]->pos == 0)
@@ -572,7 +572,7 @@ void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *ba
                                 banda->paquete = *listaTempD[posInLista];
                                 
                                 int tiempoCal = 500;
-                                usleep(tiempoCal * 1000);
+                                Lthread_pause(tiempoCal);
                                 timeL += tiempoCal;
                                 //Se mueve el paquete una posicion
                                 printf("El paquete %d esta en la posicion %d.\n", listaTempD[posInLista]->id, listaTempD[posInLista]->pos);
@@ -620,7 +620,7 @@ void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *ba
                                 banda->paquete = *listaTempD[posInLista];
                                 
                                 int tiempoCal = 500;
-                                usleep(tiempoCal * 1000);
+                                Lthread_pause(tiempoCal);
                                 time += tiempoCal;
                                 timeL += tiempoCal;
                                 if (listaTempD[posInLista]->pos == 0)
@@ -748,7 +748,7 @@ void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *ba
                                 banda->paquete = *listaTemp[posInLista];
                                 
                                 int tiempoCal = 500;
-                                usleep(tiempoCal * 1000);
+                                Lthread_pause(tiempoCal);
                                 time += tiempoCal;
                                 if (listaTemp[posInLista]->pos == 0)
                                 {
@@ -789,7 +789,7 @@ void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *ba
                                 banda->paquete = *listaTemp[posInLista];
                                 
                                 int tiempoCal = 500;
-                                usleep(tiempoCal * 1000);
+                                Lthread_pause(tiempoCal);
                                 //Se mueve el paquete una posicion
                                 printf("El paquete %d esta en la posicion %d.\n", listaTemp[posInLista]->id, listaTemp[posInLista]->pos);
                                 listaTemp[posInLista]->pos -= 1;
@@ -836,7 +836,7 @@ void scheduler(int id,list_node *derecho, list_node *izquierdo, struct banda *ba
                                 banda->paquete = *listaTemp[posInLista];
                                 
                                 int tiempoCal = 500;
-                                usleep(tiempoCal * 1000);
+                                Lthread_pause(tiempoCal);
                                 time += tiempoCal;
                                 if (listaTemp[posInLista]->pos == 0)
                                 {

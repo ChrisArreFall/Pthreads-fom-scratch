@@ -69,7 +69,7 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 	//Si es la banda 1
 	if(numBanda==1){
 		metodoFlujo = 1;
-		fuerzaBanda = 1;
+		fuerzaBanda = 10;
 		largoBanda = 10;
 		distMediaGenPaq = 5;
 		tiempoLetrero = 5;
@@ -81,10 +81,26 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 	//Si es la banda 2
 	else if(numBanda==2){
 		//parsear paquete e igualar a las variables anteriores
+		metodoFlujo = 1;
+		fuerzaBanda = 8;
+		largoBanda = 10;
+		distMediaGenPaq = 5;
+		tiempoLetrero = 5;
+		w = 3;
+		porcPaqRad = 20;
+		porcPaqUrg = 80;
 	}
 	//Si no es la banda 3
 	else{
 		//parsear paquete e igualar a las variables anteriores
+		metodoFlujo = 1;
+		fuerzaBanda = 9;
+		largoBanda = 10;
+		distMediaGenPaq = 5;
+		tiempoLetrero = 5;
+		w = 3;
+		porcPaqRad = 20;
+		porcPaqUrg = 80;
 	}
 	int tiempoEntreCreacionPaquetes=1;
 	printf("Se ha crado la banda %d con los siguientes parametros:\n",numBanda);
@@ -110,15 +126,17 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 	//Lista enlazada de paquetes en el lado derecho que van al lado izquierdo
 	struct list_node *derecho = NULL;
 	derecho = (struct list_node*)malloc(sizeof(struct list_node));
+	derecho->next = NULL;
 	//Lista enlazada de paquetes en el lado izquierdo que van al lado derecho
 	struct list_node *izquierdo = NULL;
 	izquierdo = (struct list_node*)malloc(sizeof(struct list_node));
+	izquierdo->next = NULL;
 	int id = 0;
 	while(activoTemp){
 		//Primero bajo el contador del tiempo entre creacion de paquetes
 		--tiempoEntreCreacionPaquetes;
 		//Si ya se acabo el periodo, se tienen que crear mas paquetes
-		if(tiempoEntreCreacionPaquetes==0||numeroPaquetesTotal==0){
+		if(list_length(derecho)<=1||list_length(izquierdo)){
 			printf("No hay paquetes o el tiempo se acabo por lo que se crearan mas paquetes\n");
 			//Reseteo la variable en cinco segundos
 			tiempoEntreCreacionPaquetes = 5;
@@ -136,19 +154,16 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 					paqueteTemp.pos = largoBanda;
 					//Agrego paquete a la lista
 					list_insert_end(derecho, paqueteTemp);
-					printf("--");
 					printf("Existen %d paquetes en el lado derecho...\n",list_length(derecho));	
 				}
 				else{
 					paqueteTemp.pos = -1;
 					//Agrego paquete a la lista
 					list_insert_end(izquierdo, paqueteTemp);
-					printf("--");
 					printf("Existen %d paquetes en el lado izquierdo...\n",list_length(izquierdo));
 				}
 				printf("Pos %d\n",paqueteTemp.pos);
 				++id;
-				++numeroPaquetesTotal;
 			}
 		}
 		//Si ya agrego los paquetes o todavia no ha llegado el contador a 0
@@ -157,15 +172,13 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 		list_All(derecho);
 		printf("Izquierdo:\n");
 		list_All(izquierdo);
-		scheduler(numBanda,derecho, izquierdo,&banda,largoBanda,selectedScheduler, metodoFlujo, w, timeC);
+		scheduler(numBanda,fuerzaBanda,derecho, izquierdo,&banda,largoBanda,selectedScheduler, metodoFlujo, w, timeC);
 		printf("Derecho:\n");
 		list_All(derecho);
 		printf("Izquierdo:\n");
 		list_All(izquierdo);
 		//Revisamos si ha habido un cambio en el estado de la banda por medi ode hardware o software
 		//activoTemp = estadoBanda(numBanda);
-		Lthread_yield();
-		sleep(4);
 	}
 	return;
 }
@@ -182,8 +195,8 @@ int calculateSpeed(int masa,int fuerza){
 void thread1(){
 	int i;
 	for ( i = 0; i < 20; ++ i ){
-		printf( "Hey, I'm thread #1: %d\n", i );
-		Lthread_yield();
+		printf( "-------------Hey, I'm thread #1: %d\n", i );
+		Lthread_pause(500);
 	}
 	return;
 }
@@ -226,9 +239,11 @@ int main(){
 	srand(time(0)); 
 	
 	//										  int numBanda,int selectedScheduler
-	//Lthread_create( &bandaTransoportadora, 2, 1, 2);
-	Lthread_create( &thread1, 0, 0, 0);
-	Lthread_create( &squares, 0, 0, 0);
+	Lthread_create( &bandaTransoportadora, 2, 1, 4);
+	Lthread_create( &bandaTransoportadora, 2, 2, 4);
+	Lthread_create( &bandaTransoportadora, 2, 3, 4);
+	//Lthread_create( &thread1, 0, 0, 0);
+	//Lthread_create( &squares, 0, 0, 0);
 	//Lthread_create( &fibonacchi, 0, 0, 0);
 	//Lthread_create( &fibonacchi, 0, 0, 0);
 
