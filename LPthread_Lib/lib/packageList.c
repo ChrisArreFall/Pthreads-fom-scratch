@@ -63,7 +63,7 @@ void swap(struct list_node *a, struct list_node *b)
 /* Bubble sort the given linked list */
 void bubbleSort(struct list_node *start, int tipo)
 {
-	int swapped, i;
+	int swapped;
 	struct list_node *ptr1 = NULL;
 	struct list_node *lptr = NULL;
 

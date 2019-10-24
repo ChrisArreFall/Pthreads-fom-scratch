@@ -17,6 +17,8 @@
 #define	LF_INTHREAD	4
 #define LF_SIGNALERROR	5
 
+#define BILLION  1000000000.0
+
 #ifdef LF_DEBUG
 #define LF_DEBUG_OUT( string, arg ) fprintf( stderr, "liblpthreads debug: " string "\n", arg )
 #else
@@ -29,8 +31,8 @@ typedef struct
 	int id;
 	int active;             // 0 si no esta activo, 1 si lo esta
 	int scheduler;			// Round Robin = 0,Prioridad = 1, SF = 3, GF = 4, RT = 5 
-	long time; 
-	int pause;
+	clock_t time; 
+	double pause;
 } lpthread;
 
 
@@ -82,27 +84,27 @@ void Lthread_yield(){
 		//Procedemos a cambiar al siguiente thread
 		currentlpthread = (currentlpthread + 1) % numLpthreads;
 		if(lpthreadList[currentlpthread].pause!=0){
-			struct timespec spec;
-			clock_gettime(CLOCK_REALTIME, &spec);
-			long now = round(spec.tv_nsec / 1.0e6);
-			printf("%d Now time yield: %ld\n",lpthreadList[currentlpthread].id,now);
-			printf("%d Pause time yeild: %d\n",lpthreadList[currentlpthread].id,lpthreadList[currentlpthread].pause);
-			while(now<lpthreadList[currentlpthread].pause){
-				clock_gettime(CLOCK_REALTIME, &spec);
-				now = round(spec.tv_nsec / 1.0e6);
-				if(now==999){
-					for(int j = 0;j<numLpthreads;j++){
-						if(lpthreadList[j].pause!=0){
-							lpthreadList[j].pause -= 999;
-						}
-					}
-					printf("%d Pause time while: %d\n",lpthreadList[currentlpthread].id,lpthreadList[currentlpthread].pause);
-					usleep(200);
-				}
+			clock_t end; 
+			double now = 0;
+			end = clock(); 
+			now = (double)(end) / (double)(CLOCKS_PER_SEC);
+			//printf("%d Now time yield: %lf\n",lpthreadList[currentlpthread].id,now);
+			//printf("%d Pause time yield: %lf\n",lpthreadList[currentlpthread].id,lpthreadList[currentlpthread].pause);
+			double previous = (double)(lpthreadList[currentlpthread].time)/(double)(CLOCKS_PER_SEC);
+			//printf("%d Prev time yield: %lf\n",lpthreadList[currentlpthread].id,previous);
+			while(now-previous<lpthreadList[currentlpthread].pause){
+				end = clock(); 
+				now = (double)(end) / (double)(CLOCKS_PER_SEC);
+				//printf("%d now time while: %lf\n",lpthreadList[currentlpthread].id,now);
+				//printf("%d Pause time while: %lf\n",lpthreadList[currentlpthread].id,previous);
+				//printf("%d Pause time while: %lf\n",lpthreadList[currentlpthread].id,lpthreadList[currentlpthread].pause);
 				currentlpthread = (currentlpthread + 1) % numLpthreads;
-				//printf("Now time while: %d\n",now);
-				//printf("Pause time while: %d\n",lpthreadList[currentlpthread].pause);
+				previous = (double)(lpthreadList[currentlpthread].time)/(double)(CLOCKS_PER_SEC);
 			}
+			//printf("%d Pause time after: %lf\n",lpthreadList[currentlpthread].id,lpthreadList[currentlpthread].pause);
+			//printf("%d now time after: %lf\n",lpthreadList[currentlpthread].id,now);
+			//printf("%d prev time after: %lf\n",lpthreadList[currentlpthread].id,(double)(lpthreadList[currentlpthread].time)/(double)(CLOCKS_PER_SEC));
+			usleep(200000);
 		}
 		
 		LF_DEBUG_OUT( "Cambiando al thread: %d.", currentlpthread );
@@ -223,14 +225,13 @@ int Lthread_join(int id){
 	return LF_NOERROR;
 }
 
-void Lthread_pause(int pause){
-	struct timespec spec;
-	clock_gettime(CLOCK_REALTIME, &spec);
-	long now = round(spec.tv_nsec / 1.0e6);
-	lpthreadList[currentlpthread].time = now;
-	lpthreadList[currentlpthread].pause = pause+now;
-	//printf("Now time: %d\n",lpthreadList[currentlpthread].time);
-	//printf("Pause time: %d\n",lpthreadList[currentlpthread].pause);
+void Lthread_pause(double pause){
+	clock_t start, end; 
+	start = clock();
+	lpthreadList[currentlpthread].time = start;
+	lpthreadList[currentlpthread].pause = pause;//+(double)(lpthreadList[currentlpthread].time)/(double)(CLOCKS_PER_SEC);
+	//printf("Now time: %lf\n",(double)(lpthreadList[currentlpthread].time)/(double)(CLOCKS_PER_SEC));
+	//printf("Pause time: %lf\n",lpthreadList[currentlpthread].pause);
 	Lthread_yield();
 	printf("===============%d================\n",lpthreadList[currentlpthread].id);
 	lpthreadList[currentlpthread].pause = 0;

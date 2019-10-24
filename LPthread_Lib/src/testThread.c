@@ -3,6 +3,8 @@
 #include <time.h> 
 #include <unistd.h>
 #include <malloc.h>
+#include <math.h>
+#include <string.h>
 
 #include "../lib/scheduler.c"
 #include "../include/scheduler.h"
@@ -29,6 +31,9 @@
 		✓ Porcentaje de paquetes urgentes
 
  */
+
+
+
 int activoB1 = 1, activoB2 = 1, activoB3 = 1;
 
 int estadoBanda(int numBanda){
@@ -54,6 +59,39 @@ int estadoBanda(int numBanda){
 	return activoTemp;
 }
 
+char* getData(char *file){
+	int c;
+    FILE *input_file;
+	char *str = malloc(16 * sizeof(char));
+    input_file = fopen(file, "r");
+
+    if (input_file == 0)
+    {
+        //fopen returns 0, the NULL pointer, on failure
+        perror("Canot open input file\n");
+		printf("%s\n",file);
+        exit(-1);
+    }
+    else
+    {        
+		int i = 0;
+        while ((c =fgetc(input_file)) != EOF )
+        {
+            str[i] = c;
+			i++;
+			if(i==16){
+				break;
+			}
+        }
+    }
+
+    fclose(input_file);
+
+
+    return str;
+}
+
+
 void bandaTransoportadora(int numBanda,int selectedScheduler){
 	//Primero parseo el archivo de configuracion 
 	int metodoFlujo;
@@ -68,39 +106,45 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 	
 	//Si es la banda 1
 	if(numBanda==1){
-		metodoFlujo = 1;
-		fuerzaBanda = 10;
-		largoBanda = 10;
-		distMediaGenPaq = 5;
-		tiempoLetrero = 5;
-		w = 3;
-		porcPaqRad = 20;
-		porcPaqUrg = 80;
+		char *str = malloc(9 * sizeof(char));
+		str = getData("../data/1config.txt");
+		metodoFlujo = (str[0]- '0')*10  +  str[1]- '0';
+		fuerzaBanda = (str[2]- '0')*10  +  str[3]- '0';
+		largoBanda = (str[4]- '0')*10  +  str[5]- '0';
+		distMediaGenPaq = (str[6]- '0')*10  +  str[7]- '0';
+		tiempoLetrero = (str[8]- '0')*10  +  str[9]- '0';
+		w = (str[10]- '0')*10  +  str[11]- '0';
+		porcPaqRad = (str[12]- '0')*10  +  str[13]- '0';
+		porcPaqUrg = (str[14]- '0')*10  +  str[15]- '0';
 		
 	}
 	//Si es la banda 2
 	else if(numBanda==2){
 		//parsear paquete e igualar a las variables anteriores
-		metodoFlujo = 1;
-		fuerzaBanda = 8;
-		largoBanda = 10;
-		distMediaGenPaq = 5;
-		tiempoLetrero = 5;
-		w = 3;
-		porcPaqRad = 20;
-		porcPaqUrg = 80;
+		char *str = malloc(9 * sizeof(char));
+		str = getData("../data/2config.txt");
+		metodoFlujo = (str[0]- '0')*10  +  str[1]- '0';
+		fuerzaBanda = (str[2]- '0')*10  +  str[3]- '0';
+		largoBanda = (str[4]- '0')*10  +  str[5]- '0';
+		distMediaGenPaq = (str[6]- '0')*10  +  str[7]- '0';
+		tiempoLetrero = (str[8]- '0')*10  +  str[9]- '0';
+		w = (str[10]- '0')*10  +  str[11]- '0';
+		porcPaqRad = (str[12]- '0')*10  +  str[13]- '0';
+		porcPaqUrg = (str[14]- '0')*10  +  str[15]- '0';
 	}
 	//Si no es la banda 3
 	else{
 		//parsear paquete e igualar a las variables anteriores
-		metodoFlujo = 1;
-		fuerzaBanda = 9;
-		largoBanda = 10;
-		distMediaGenPaq = 5;
-		tiempoLetrero = 5;
-		w = 3;
-		porcPaqRad = 20;
-		porcPaqUrg = 80;
+		char *str = malloc(9 * sizeof(char));
+		str = getData("../data/3config.txt");
+		metodoFlujo = (str[0]- '0')*10  +  str[1]- '0';
+		fuerzaBanda = (str[2]- '0')*10  +  str[3]- '0';
+		largoBanda = (str[4]- '0')*10  +  str[5]- '0';
+		distMediaGenPaq = (str[6]- '0')*10  +  str[7]- '0';
+		tiempoLetrero = (str[8]- '0')*10  +  str[9]- '0';
+		w = (str[10]- '0')*10  +  str[11]- '0';
+		porcPaqRad = (str[12]- '0')*10  +  str[13]- '0';
+		porcPaqUrg = (str[14]- '0')*10  +  str[15]- '0';
 	}
 	int tiempoEntreCreacionPaquetes=1;
 	printf("Se ha crado la banda %d con los siguientes parametros:\n",numBanda);
@@ -112,7 +156,8 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 	printf("w: %d\n",w);
 	printf("porPaqRad: %d\n",porcPaqRad);
 	printf("porcPaqUrg: %d\n",porcPaqUrg);
-
+	sleep(2);
+	Lthread_yield();
 	//Banda que se abstrae como una lista de segmentos
 	struct banda banda;
 	banda.tamano = largoBanda;
@@ -136,7 +181,7 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 		//Primero bajo el contador del tiempo entre creacion de paquetes
 		--tiempoEntreCreacionPaquetes;
 		//Si ya se acabo el periodo, se tienen que crear mas paquetes
-		if(list_length(derecho)<=1||list_length(izquierdo)){
+		if(list_length(derecho)<=1||list_length(izquierdo)<=1){
 			printf("No hay paquetes o el tiempo se acabo por lo que se crearan mas paquetes\n");
 			//Reseteo la variable en cinco segundos
 			tiempoEntreCreacionPaquetes = 5;
@@ -172,7 +217,7 @@ void bandaTransoportadora(int numBanda,int selectedScheduler){
 		list_All(derecho);
 		printf("Izquierdo:\n");
 		list_All(izquierdo);
-		scheduler(numBanda,fuerzaBanda,derecho, izquierdo,&banda,largoBanda,selectedScheduler, metodoFlujo, w, timeC);
+		scheduler(numBanda,fuerzaBanda,tiempoLetrero,derecho, izquierdo,&banda,largoBanda,selectedScheduler, metodoFlujo, w, timeC);
 		printf("Derecho:\n");
 		list_All(derecho);
 		printf("Izquierdo:\n");
@@ -193,10 +238,11 @@ int calculateSpeed(int masa,int fuerza){
 
 
 void thread1(){
+	Lthread_yield();
 	int i;
 	for ( i = 0; i < 20; ++ i ){
 		printf( "-------------Hey, I'm thread #1: %d\n", i );
-		Lthread_pause(500);
+		Lthread_pause(2);
 	}
 	return;
 }
@@ -223,12 +269,13 @@ void fibonacchi(){
 }
 
 void squares(){
+	Lthread_yield();
 	int i;
 	
 	//sleep( 5 );
-	for ( i = 0; i < 10; ++ i ){
+	for ( i = 0; i < 40; ++ i ){
 		printf( "%d*%d = %d\n", i, i, i*i );
-		Lthread_pause(500);
+		Lthread_pause(1);
 	}
 }
 
@@ -247,6 +294,7 @@ int main(){
 	//Lthread_create( &fibonacchi, 0, 0, 0);
 	//Lthread_create( &fibonacchi, 0, 0, 0);
 
+	
 	Lthread_wait();
 	
 	return 0;

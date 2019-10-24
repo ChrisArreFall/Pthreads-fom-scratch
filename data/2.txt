@@ -1,1 +1,1 @@
-{"paquete": {"id": 105,"tipo": 0,"masa": 9,"lado": 1,"estado": 0,"pos": 5},"tamano": 10,"letrero": 0,"id": 2}
+{"paquete": {"id": 3,"tipo": 2,"masa": 5,"lado": 1,"estado": 0,"pos": 1},"tamano": 10,"letrero": 1,"id": 2}
