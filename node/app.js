@@ -1,9 +1,8 @@
-const fs = require('fs');
+const fs = require("fs");
 
 const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
-const axios = require("axios");
 const port = process.env.PORT || 4001;
 const index = require("./routes/index");
 const app = express();
@@ -33,13 +32,12 @@ io.on("connection", socket => {
 
 server.listen(port, () => console.log(`Listening on port ${port}`));
 
-
 const getApiAndEmit = async socket => {
   try {
-    var data1 = fs.readFileSync('../data/1.txt', 'utf8');
-    var data2 = fs.readFileSync('../data/2.txt', 'utf8');
-    var data3 = fs.readFileSync('../data/3.txt', 'utf8');
-    var result = "["+data1+","+data2+","+data3+"]";
+    var data1 = fs.readFileSync("../data/1.txt", "utf8");
+    var data2 = fs.readFileSync("../data/2.txt", "utf8");
+    var data3 = fs.readFileSync("../data/3.txt", "utf8");
+    var result = "[" + data1 + "," + data2 + "," + data3 + "]";
     console.log(result);
     socket.emit("FromAPI", result); // Emitting a new message. It will be consumed by the client
   } catch (error) {
