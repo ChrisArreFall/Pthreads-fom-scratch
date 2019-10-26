@@ -3,8 +3,8 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 
-const char *ssid = "El Quijongo";            // Enter SSID //!Change Value
-const char *password = "ThatsWhatSheSaid13"; // Enter Password //!Change Value
+const char *ssid = "Ramiro's Secret Room";            // Enter SSID //!Change Value
+const char *password = "pastel-ninja77"; // Enter Password //!Change Value
 int num_pixels = 60; // Number of pixels in the strip
 String response; // String that hold the http GET answer
 /**Declare our NeoPixel strip object:
@@ -206,7 +206,7 @@ void loop()
 {
   HTTPClient http;                   // Declare an object of class HTTPClient
   response = "";                     // Resets the response message
-  http.begin("192.168.100.8", 4001); // Establishes a connection
+  http.begin("192.168.43.15", 4001); // Establishes a connection //!Change Value
   int httpCode = http.GET();         // Send the request
 
   if (httpCode > 0) // Check the returning code

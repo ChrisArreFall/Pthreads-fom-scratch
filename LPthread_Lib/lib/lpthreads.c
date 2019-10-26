@@ -171,6 +171,9 @@ int Lthread_create( void (*func)(int,int),int argc,int arg1, int arg2){
 	lpthreadList[numLpthreads].id = numLpthreads;
 	lpthreadList[numLpthreads].pause = 0;
 	lpthreadList[numLpthreads].time = 0;
+	printf("=====================================\n");
+	printf("===========HOLA JASON==============\n");
+	printf("=====================================\n");
 	if ( lpthreadList[numLpthreads].context.uc_stack.ss_sp == 0 )
 	{
 		LF_DEBUG_OUT( "Error: No se le pudo inicializar un stack nuevo.", 0 );
