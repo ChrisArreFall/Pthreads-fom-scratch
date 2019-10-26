@@ -212,7 +212,7 @@ void loop()
   if (httpCode > 0) // Check the returning code
   {
     response = http.getString(); // Get the request response payload
-    Serial.println(response);    // Print the response payload //!Debug
+    //Serial.println(response);    // Print the response payload //!Debug
   }
 
   http.end(); //Close connection
